@@ -5,4 +5,5 @@ Flask-Migrate
 python-dotenv
 qrcode[pil]
 pandas
-openpyxl 
+openpyxl
+gunicorn 
