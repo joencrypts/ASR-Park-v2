@@ -946,6 +946,30 @@ def staff_details(staff_id):
                          total_exits=total_exits,
                          efficiency_rate=efficiency_rate)
 
+@main.route('/admin/toggle-payment/<int:entry_id>', methods=['POST'])
+@login_required
+def toggle_payment(entry_id):
+    if current_user.role != 'admin':
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('main.index'))
+    
+    entry = Entry.query.get_or_404(entry_id)
+    
+    # Toggle payment status
+    entry.paid = not entry.paid
+    
+    # If marking as unpaid, set amount to 0
+    if not entry.paid:
+        entry.amount = 0
+    
+    db.session.commit()
+    
+    status = "paid" if entry.paid else "unpaid"
+    flash(f'Vehicle {entry.ticket_number} marked as {status}.', 'success')
+    
+    # Redirect back to the referring page or admin dashboard
+    return redirect(request.referrer or url_for('main.admin_dashboard'))
+
 @main.route('/admin/clear-entries', methods=['GET', 'POST'])
 @login_required
 def clear_entries():
