@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - ASR Parking Lot</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('main.public_file', filename='favi.ico') }}">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background-color: white;
+            padding: 15px 20px;
+            color: black;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .navbar h1 {
+            margin: 0;
+            display: inline-block;
+            font-size: clamp(18px, 4vw, 24px);
+            color: black;
+        }
+        
+        .navbar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .navbar-logo img {
+            height: clamp(30px, 6vw, 40px);
+            width: auto;
+        }
+        
+        .navbar-right {
+            float: right;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            color: black;
+        }
+        
+        .navbar a {
+            color: black;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 25px;
+            background-color: rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border: 2px solid transparent;
+        }
+        
+        .navbar a:hover {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-color: rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .page-header h2 {
+            color: #333;
+            margin: 0 0 10px 0;
+            font-size: clamp(20px, 5vw, 28px);
+        }
+        
+        .page-header p {
+            color: #666;
+            margin: 0;
+            font-size: clamp(14px, 3vw, 16px);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 15px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #28a745;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 50px;
+        }
+        
+        .btn-primary {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .flash-message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+        }
+        
+        .flash-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #28a745;
+        }
+        
+        .flash-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #dc3545;
+        }
+        
+        .flash-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border-color: #17a2b8;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border-left: 5px solid #28a745;
+        }
+        
+        .info-box h3 {
+            color: #333;
+            margin: 0 0 10px 0;
+            font-size: clamp(16px, 4vw, 20px);
+        }
+        
+        .info-box p {
+            color: #666;
+            margin: 0;
+            font-size: clamp(14px, 3vw, 16px);
+        }
+        
+        .search-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .tab-button {
+            padding: 12px 24px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .tab-button:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .tab-button.active {
+            background-color: #28a745;
+        }
+        
+        .tab-button.active:hover {
+            background-color: #218838;
+        }
+        
+        .search-form {
+            display: none;
+        }
+        
+        .search-form.active {
+            display: block;
+        }
+        
+        .qr-instructions {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border-left: 5px solid #2196f3;
+        }
+        
+        .qr-instructions h4 {
+            color: #1976d2;
+            margin: 0 0 15px 0;
+            font-size: clamp(16px, 4vw, 18px);
+        }
+        
+        .qr-instructions ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #424242;
+        }
+        
+        .qr-instructions li {
+            margin-bottom: 8px;
+            font-size: clamp(14px, 3vw, 16px);
+        }
+        
+        .scanner-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        #reader {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 20px auto;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .scanner-status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: clamp(14px, 3vw, 16px);
+        }
+        
+        .scanner-status.scanning {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #17a2b8;
+        }
+        
+        .scanner-status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
+        
+        .scanner-status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 2px solid #dc3545;
+        }
+        
+        .camera-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .camera-btn {
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            min-width: 120px;
+        }
+        
+        .camera-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .camera-btn:last-child {
+            background-color: #dc3545;
+        }
+        
+        .camera-btn:last-child:hover {
+            background-color: #c82333;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 10px 15px;
+            }
+            
+            .navbar-right {
+                float: none;
+                margin-top: 10px;
+                justify-content: center;
+            }
+            
+            .container {
+                margin: 10px;
+                padding: 15px;
+                border-radius: 10px;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .search-tabs {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .tab-button {
+                width: 100%;
+                padding: 15px 20px;
+            }
+            
+            .camera-controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .camera-btn {
+                width: 100%;
+                padding: 15px 20px;
+            }
+            
+            .info-box {
+                padding: 15px;
+            }
+            
+            .qr-instructions {
+                padding: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .navbar h1 {
+                font-size: 18px;
+            }
+            
+            .navbar-logo img {
+                height: 30px;
+            }
+            
+            .container {
+                margin: 5px;
+                padding: 10px;
+            }
+            
+            .page-header {
+                margin-bottom: 20px;
+            }
+            
+            .form-group input,
+            .form-group select {
+                padding: 12px;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+            
+            .tab-button {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+            
+            .camera-btn {
+                padding: 12px 16px;
+                font-size: 14px;
+                min-width: auto;
+            }
+            
+            .info-box {
+                padding: 12px;
+            }
+            
+            .qr-instructions {
+                padding: 12px;
+            }
+            
+            .scanner-status {
+                padding: 12px;
+                font-size: 14px;
+            }
+        }
+        
+        @media (orientation: landscape) and (max-height: 600px) {
+            .navbar {
+                padding: 8px 15px;
+            }
+            
+            .container {
+                margin: 10px auto;
+            }
+            
+            .page-header {
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+            }
+            
+            .info-box {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .qr-instructions {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .scanner-container {
+                margin: 15px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-logo">
+            <img src="{{ url_for('main.public_file', filename='logo.png') }}" alt="ASR Parking Lot Logo">
+            <h1>ASR Parking Lot - Vehicle Exit</h1>
+        </div>
+        <div class="navbar-right">
+            <span>Welcome, {{ current_user.username }} ({{ current_user.role }})</span>
+            <a href="{{ url_for('main.staff_dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('main.logout') }}">Logout</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <div class="info-box">
+            <h3>Vehicle Exit Processing</h3>
+            <p>Scan QR code or enter vehicle number to process exit and calculate payment.</p>
+        </div>
+        
+        <div class="search-tabs">
+            <button class="tab-button active" onclick="showTab('scanner')">QR Scanner</button>
+            <button class="tab-button" onclick="showTab('manual')">Manual Entry</button>
+        </div>
+        
+        <!-- QR Scanner Form -->
+        <div class="search-form active" id="scanner-form">
+            <div class="qr-instructions">
+                <h4>QR Code Scanner Instructions:</h4>
+                <ul>
+                    <li>Allow camera access when prompted</li>
+                    <li>Point camera at the QR code on the parking ticket</li>
+                    <li>Hold steady until the code is scanned</li>
+                    <li>You will be automatically redirected to payment</li>
+                </ul>
+            </div>
+            
+            <div class="scanner-container">
+                <div id="reader"></div>
+                <div id="scanner-status" class="scanner-status scanning">
+                    Scanner ready. Point camera at QR code...
+                </div>
+                <div class="camera-controls">
+                    <button class="camera-btn" onclick="startScanner()">Start Scanner</button>
+                    <button class="camera-btn" onclick="stopScanner()">Stop Scanner</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Manual Entry Form -->
+        <div class="search-form" id="manual-form">
+            <div class="info-box">
+                <h3>Manual Entry</h3>
+                <p>Enter vehicle number in any format (e.g., TN 75 AA 8989, TN75AA8989, tn75aa8989)</p>
+            </div>
+            
+            <form method="POST">
+                <input type="hidden" name="search_type" value="vehicle_number">
+                
+                <div class="form-group">
+                    <label for="vehicle_number">Vehicle Number:</label>
+                    <input type="text" id="vehicle_number" name="search_value" 
+                           placeholder="e.g., TN 75 AA 8989 or TN75AA8989" required>
+                </div>
+                
+                <button type="submit" class="btn">Process Exit & Calculate Bill</button>
+            </form>
+        </div>
+        
+        <a href="{{ url_for('main.staff_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+    
+    <script>
+        let html5QrcodeScanner = null;
+        let isScanning = false;
+        
+        function showTab(tabName) {
+            // Hide all forms
+            const forms = document.querySelectorAll('.search-form');
+            forms.forEach(form => form.classList.remove('active'));
+            
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+            
+            // Show selected form and activate button
+            if (tabName === 'scanner') {
+                document.getElementById('scanner-form').classList.add('active');
+                document.querySelector('.tab-button:first-child').classList.add('active');
+                startScanner();
+            } else {
+                document.getElementById('manual-form').classList.add('active');
+                document.querySelector('.tab-button:last-child').classList.add('active');
+                stopScanner();
+            }
+        }
+        
+        function startScanner() {
+            if (isScanning) return;
+            
+            updateScannerStatus('scanning', 'Starting camera...');
+            
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            };
+            
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, // Use back camera
+                config,
+                onScanSuccess,
+                onScanFailure
+            ).then(() => {
+                isScanning = true;
+                updateScannerStatus('scanning', 'Scanner active. Point camera at QR code...');
+            }).catch(err => {
+                console.error('Scanner start failed:', err);
+                if (err.toString().includes('NotAllowedError')) {
+                    updateScannerStatus('error', 'Camera access denied. Please allow camera permissions and try again.');
+                } else if (err.toString().includes('NotFoundError')) {
+                    updateScannerStatus('error', 'No camera found. Please connect a camera and try again.');
+                } else {
+                    updateScannerStatus('error', 'Failed to start scanner: ' + err.message);
+                }
+            });
+        }
+        
+        function stopScanner() {
+            if (html5QrcodeScanner && isScanning) {
+                html5QrcodeScanner.stop().then(() => {
+                    isScanning = false;
+                    updateScannerStatus('scanning', 'Scanner stopped.');
+                }).catch(err => {
+                    console.error('Scanner stop failed:', err);
+                });
+            }
+        }
+        
+        function onScanSuccess(decodedText, decodedResult) {
+            // Stop scanner after successful scan
+            stopScanner();
+            
+            // Try to parse as JSON first (new format)
+            try {
+                const qrData = JSON.parse(decodedText);
+                if (qrData.ticket && qrData.entry_time) {
+                    // Valid new format QR code
+                    updateScannerStatus('success', `QR Code scanned: ${qrData.ticket}`);
+                    processTicketNumber(decodedText);
+                    return;
+                }
+            } catch (e) {
+                // Not JSON, try old format
+            }
+            
+            // Validate old ticket number format (ASR#####) for backward compatibility
+            if (!/^ASR\d{5}$/.test(decodedText)) {
+                updateScannerStatus('error', 'Invalid QR code format. Please scan a valid parking ticket.');
+                setTimeout(() => {
+                    updateScannerStatus('scanning', 'Scanner ready. Point camera at QR code...');
+                    startScanner();
+                }, 3000);
+                return;
+            }
+            
+            // Update status
+            updateScannerStatus('success', `QR Code scanned: ${decodedText}`);
+            
+            // Process the ticket number
+            processTicketNumber(decodedText);
+        }
+        
+        function onScanFailure(error) {
+            // Handle scan failure silently (user might be moving camera)
+            // Only log if it's not a common "not found" error
+            if (error && !error.toString().includes('NotFoundException')) {
+                console.log('Scan failed:', error);
+            }
+        }
+        
+        function updateScannerStatus(type, message) {
+            const statusElement = document.getElementById('scanner-status');
+            statusElement.className = `scanner-status ${type}`;
+            statusElement.textContent = message;
+        }
+        
+        function processTicketNumber(ticketNumber) {
+            // Create a form and submit it automatically
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '';
+            
+            // Add search type
+            const searchTypeInput = document.createElement('input');
+            searchTypeInput.type = 'hidden';
+            searchTypeInput.name = 'search_type';
+            searchTypeInput.value = 'qr_code';
+            form.appendChild(searchTypeInput);
+            
+            // Add ticket number
+            const searchValueInput = document.createElement('input');
+            searchValueInput.type = 'hidden';
+            searchValueInput.name = 'search_value';
+            searchValueInput.value = ticketNumber;
+            form.appendChild(searchValueInput);
+            
+            // Submit form
+            document.body.appendChild(form);
+            form.submit();
+        }
+        
+        // Auto-start scanner when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Start scanner after a short delay to ensure page is ready
+            setTimeout(() => {
+                if (document.getElementById('scanner-form').classList.contains('active')) {
+                    startScanner();
+                }
+            }, 1000);
+        });
+        
+        // Clean up scanner when page is unloaded
+        window.addEventListener('beforeunload', function() {
+            stopScanner();
+        });
+    </script>
+</body>
+</html> 

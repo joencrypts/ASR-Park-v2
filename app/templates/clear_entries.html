@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - ASR Parking Lot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .navbar {
+            background-color: #dc3545;
+            padding: 15px 20px;
+            color: white;
+        }
+        .navbar h1 {
+            margin: 0;
+            display: inline-block;
+        }
+        .navbar-right {
+            float: right;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+        .navbar a:hover {
+            color: #ddd;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .page-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #dc3545;
+        }
+        .page-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        .warning-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #ffc107;
+        }
+        .warning-box h3 {
+            margin: 0 0 10px 0;
+            color: #856404;
+        }
+        .warning-box ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #dc3545;
+            box-shadow: 0 0 5px rgba(220, 53, 69, 0.3);
+        }
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .radio-option:hover {
+            background-color: #f8f9fa;
+            border-color: #dc3545;
+        }
+        .radio-option input[type="radio"] {
+            margin-right: 10px;
+            width: auto;
+        }
+        .radio-option label {
+            margin: 0;
+            cursor: pointer;
+            flex: 1;
+        }
+        .option-description {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .date-range-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            display: none;
+        }
+        .date-range-group.active {
+            display: grid;
+        }
+        .confirmation-group {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            border-left: 4px solid #dc3545;
+        }
+        .confirmation-group label {
+            color: #721c24;
+            font-weight: bold;
+        }
+        .confirmation-group input {
+            background-color: white;
+            border: 2px solid #dc3545;
+        }
+        .btn {
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        .form-actions {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        .flash-message {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .flash-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .flash-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>ASR Parking Lot - Clear Entries</h1>
+        <div class="navbar-right">
+            <span>Welcome, {{ current_user.username }} ({{ current_user.role }})</span>
+            <a href="{{ url_for('main.admin_dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('main.logout') }}">Logout</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <div class="page-header">
+            <h2>Clear Vehicle Entries</h2>
+        </div>
+        
+        <div class="warning-box">
+            <h3>⚠️ Warning: This action cannot be undone!</h3>
+            <ul>
+                <li>Clearing entries will permanently delete data from the database</li>
+                <li>This action affects reports and analytics</li>
+                <li>Make sure you have backed up any important data</li>
+                <li>Consider exporting data before clearing</li>
+            </ul>
+        </div>
+        
+        <form method="POST" onsubmit="return confirmClear()">
+            <div class="form-group">
+                <label>Clear Type:</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="clear_all" name="clear_type" value="all" required>
+                        <label for="clear_all">
+                            <strong>Clear All Entries</strong>
+                            <div class="option-description">Remove all vehicle entries from the system (most destructive)</div>
+                        </label>
+                    </div>
+                    
+                    <div class="radio-option">
+                        <input type="radio" id="clear_date_range" name="clear_type" value="date_range" required>
+                        <label for="clear_date_range">
+                            <strong>Clear by Date Range</strong>
+                            <div class="option-description">Remove entries within a specific date range</div>
+                        </label>
+                    </div>
+                    
+                    <div class="radio-option">
+                        <input type="radio" id="clear_paid_only" name="clear_type" value="paid_only" required>
+                        <label for="clear_paid_only">
+                            <strong>Clear Paid Entries Only</strong>
+                            <div class="option-description">Remove only entries that have been paid (safer option)</div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="date-range-group" id="dateRangeGroup">
+                <div class="form-group">
+                    <label for="start_date">Start Date:</label>
+                    <input type="date" id="start_date" name="start_date">
+                </div>
+                <div class="form-group">
+                    <label for="end_date">End Date:</label>
+                    <input type="date" id="end_date" name="end_date">
+                </div>
+            </div>
+            
+            <div class="confirmation-group">
+                <div class="form-group">
+                    <label for="confirmation">Type "CLEAR" to confirm:</label>
+                    <input type="text" id="confirmation" name="confirmation" 
+                           placeholder="Type CLEAR to confirm" required>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger">Clear Entries</button>
+                <a href="{{ url_for('main.admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        // Show/hide date range inputs based on selection
+        document.querySelectorAll('input[name="clear_type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const dateRangeGroup = document.getElementById('dateRangeGroup');
+                if (this.value === 'date_range') {
+                    dateRangeGroup.classList.add('active');
+                } else {
+                    dateRangeGroup.classList.remove('active');
+                }
+            });
+        });
+        
+        // Additional confirmation
+        function confirmClear() {
+            const clearType = document.querySelector('input[name="clear_type"]:checked');
+            if (!clearType) {
+                alert('Please select a clear type.');
+                return false;
+            }
+            
+            const confirmation = document.getElementById('confirmation').value;
+            if (confirmation !== 'CLEAR') {
+                alert('Please type "CLEAR" to confirm the operation.');
+                return false;
+            }
+            
+            let message = 'Are you absolutely sure you want to ';
+            switch (clearType.value) {
+                case 'all':
+                    message += 'clear ALL vehicle entries? This action cannot be undone!';
+                    break;
+                case 'date_range':
+                    const startDate = document.getElementById('start_date').value;
+                    const endDate = document.getElementById('end_date').value;
+                    if (!startDate || !endDate) {
+                        alert('Please select both start and end dates.');
+                        return false;
+                    }
+                    message += `clear entries from ${startDate} to ${endDate}?`;
+                    break;
+                case 'paid_only':
+                    message += 'clear all paid entries?';
+                    break;
+            }
+            
+            return confirm(message);
+        }
+    </script>
+</body>
+</html> 

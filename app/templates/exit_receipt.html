@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exit Receipt - {{ entry.ticket_number }}</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('main.public_file', filename='favi.ico') }}">
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+            font-size: 12px;
+            line-height: 1.2;
+        }
+        .receipt {
+            width: 80mm; /* Standard thermal printer width */
+            margin: 0 auto;
+            padding: 5mm;
+            background: white;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            margin: 5px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .header p {
+            margin: 3px 0;
+            font-size: 12px;
+        }
+        .logo-section {
+            margin-bottom: 10px;
+        }
+        .logo {
+            width: 60px;
+            height: auto;
+        }
+        .receipt-type {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 5px;
+            background-color: #f0f0f0;
+            border: 1px solid #000;
+        }
+        .ticket-info {
+            margin: 10px 0;
+        }
+        .ticket-info .row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+        .ticket-info .label {
+            font-weight: bold;
+        }
+        .vehicle-info {
+            margin: 10px 0;
+            border: 1px solid #000;
+            padding: 8px;
+        }
+        .vehicle-info .row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+        .vehicle-info .label {
+            font-weight: bold;
+        }
+        .timing-info {
+            margin: 10px 0;
+            border: 1px solid #000;
+            padding: 8px;
+        }
+        .timing-info .row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+        .timing-info .label {
+            font-weight: bold;
+        }
+        .duration {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 5px;
+            background-color: #f0f0f0;
+            border: 1px solid #000;
+        }
+        .billing {
+            margin: 10px 0;
+            border: 1px solid #000;
+            padding: 8px;
+        }
+        .billing .row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+        .billing .label {
+            font-weight: bold;
+        }
+        .total {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #000;
+            color: white;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            border-top: 1px dashed #000;
+            padding-top: 10px;
+        }
+        .footer p {
+            margin: 3px 0;
+            font-size: 10px;
+        }
+        .thank-you {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .print-button:hover {
+            background-color: #218838;
+        }
+        @media print {
+            .print-button {
+                display: none;
+            }
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            .receipt {
+                width: 80mm;
+                margin: 0;
+                padding: 5mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button" onclick="window.print()">Print Receipt</button>
+    
+    <div class="receipt">
+        <div class="header">
+            <div class="logo-section">
+                <img src="{{ url_for('main.public_file', filename='logo.png') }}" alt="ASR Parking Lot Logo" class="logo">
+            </div>
+            <h1>ASR PARKING LOT</h1>
+            
+           
+        </div>
+        
+        <div class="receipt-type">
+            EXIT RECEIPT
+        </div>
+        
+        <div class="ticket-info">
+            <div class="row">
+                <span class="label">Ticket No:</span>
+                <span>{{ entry.ticket_number }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Receipt No:</span>
+                <span>EX{{ entry.exit_time.strftime('%Y%m%d%H%M%S') }}</span>
+            </div>
+        </div>
+        
+        <div class="vehicle-info">
+            <div class="row">
+                <span class="label">Vehicle Type:</span>
+                <span>{{ entry.vehicle_type }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Vehicle No:</span>
+                <span>{{ entry.vehicle_number }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Phone:</span>
+                <span>{{ entry.phone }}</span>
+            </div>
+        </div>
+        
+        <div class="timing-info">
+            <div class="row">
+                <span class="label">Entry Date:</span>
+                <span>{{ entry.entry_time.strftime('%d/%m/%Y') }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Entry Time:</span>
+                <span>{{ entry.entry_time.strftime('%H:%M:%S') }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Exit Date:</span>
+                <span>{{ entry.exit_time.strftime('%d/%m/%Y') }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Exit Time:</span>
+                <span>{{ entry.exit_time.strftime('%H:%M:%S') }}</span>
+            </div>
+        </div>
+        
+        <div class="duration">
+            {% set duration = entry.exit_time - entry.entry_time %}
+            {% set hours = duration.total_seconds() / 3600 %}
+            {% if hours < 1 %}
+                Duration: {{ "%.0f"|format(hours * 60) }} Minutes
+            {% elif hours < 24 %}
+                Duration: {{ "%.1f"|format(hours) }} Hours
+            {% else %}
+                Duration: {{ "%.1f"|format(hours / 24) }} Days
+            {% endif %}
+        </div>
+        
+        <div class="billing">
+            <div class="row">
+                <span class="label">Base Charge:</span>
+                <span>₹{{ "%.0f"|format(base_amount) }}</span>
+            </div>
+            {% if hours > 24 %}
+            <div class="row">
+                <span class="label">Overtime (50%):</span>
+                <span>₹{{ "%.0f"|format(base_amount * 0.5) }}</span>
+            </div>
+            {% endif %}
+            
+        </div>
+        
+        <div class="total">
+            TOTAL AMOUNT: ₹{{ "%.0f"|format(entry.amount or 0) }}
+        </div>
+        
+        <div class="footer">
+            <p>Payment Status: 
+                {% if entry.paid %}
+                    <strong style="color: green;">PAID</strong>
+                {% else %}
+                    <strong style="color: red;">PENDING</strong>
+                {% endif %}
+            </p>
+            <p>Thank you for using ASR Parking Lot</p>
+            <p>Please keep this receipt for your records</p>
+            <p>For queries: +917397708708</p>
+        </div>
+        
+        <div class="thank-you">
+            THANK YOU! COME AGAIN!
+        </div>
+    </div>
+</body>
+</html> 

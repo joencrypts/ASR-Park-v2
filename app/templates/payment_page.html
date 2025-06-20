@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - ASR Parking Lot</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('main.public_file', filename='favi.ico') }}">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background-color: #28a745;
+            padding: 15px 20px;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .navbar h1 {
+            margin: 0;
+            display: inline-block;
+            font-size: clamp(18px, 4vw, 24px);
+        }
+        
+        .navbar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .navbar-logo img {
+            height: clamp(30px, 6vw, 40px);
+            width: auto;
+        }
+        
+        .navbar-right {
+            float: right;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 25px;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border: 2px solid transparent;
+        }
+        
+        .navbar a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .page-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .page-header h2 {
+            color: #333;
+            margin: 0 0 10px 0;
+            font-size: clamp(20px, 5vw, 28px);
+        }
+        
+        .page-header p {
+            color: #666;
+            margin: 0;
+            font-size: clamp(14px, 3vw, 16px);
+        }
+        
+        .vehicle-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 5px solid #28a745;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .vehicle-info h3 {
+            color: #333;
+            margin: 0 0 15px 0;
+            font-size: clamp(16px, 3vw, 18px);
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .info-value {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .payment-details {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .payment-details h3 {
+            color: #333;
+            margin: 0 0 20px 0;
+            font-size: clamp(16px, 3vw, 18px);
+        }
+        
+        .payment-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .payment-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .payment-item:hover {
+            background: #e9ecef;
+            transform: scale(1.02);
+        }
+        
+        .payment-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .payment-value {
+            font-size: clamp(1.2em, 3vw, 1.5em);
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .total-amount {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .total-amount h4 {
+            margin: 0 0 10px 0;
+            font-size: clamp(14px, 3vw, 16px);
+        }
+        
+        .total-amount .amount {
+            font-size: clamp(1.5em, 4vw, 2em);
+            font-weight: bold;
+        }
+        
+        .payment-methods {
+            margin-bottom: 30px;
+        }
+        
+        .payment-methods h3 {
+            color: #333;
+            margin: 0 0 15px 0;
+            font-size: clamp(16px, 3vw, 18px);
+        }
+        
+        .method-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .method-option {
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .method-option:hover {
+            border-color: #28a745;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .method-option.selected {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        }
+        
+        .method-option input[type="radio"] {
+            margin-right: 8px;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 50px;
+        }
+        
+        .btn-primary {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .flash-message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+        }
+        
+        .flash-success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #28a745;
+        }
+        
+        .flash-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #dc3545;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 10px 15px;
+            }
+            
+            .navbar-right {
+                float: none;
+                margin-top: 10px;
+                justify-content: center;
+            }
+            
+            .container {
+                margin: 10px;
+                padding: 15px;
+                border-radius: 10px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .payment-summary {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .method-options {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .navbar h1 {
+                font-size: 18px;
+            }
+            
+            .navbar-logo img {
+                height: 30px;
+            }
+            
+            .container {
+                margin: 5px;
+                padding: 10px;
+            }
+            
+            .page-header {
+                margin-bottom: 20px;
+            }
+            
+            .vehicle-info,
+            .payment-details {
+                padding: 20px;
+            }
+            
+            .payment-summary {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 16px; /* Prevents zoom on iOS */
+            }
+        }
+        
+        @media (orientation: landscape) and (max-height: 600px) {
+            .navbar {
+                padding: 8px 15px;
+            }
+            
+            .container {
+                margin: 10px auto;
+            }
+            
+            .page-header {
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+            }
+            
+            .vehicle-info,
+            .payment-details {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-logo">
+            <img src="{{ url_for('main.public_file', filename='logo.png') }}" alt="ASR Parking Lot Logo">
+            <h1>ASR Parking Lot - Payment</h1>
+        </div>
+        <div class="navbar-right">
+            <span>Welcome, {{ current_user.username }} ({{ current_user.role }})</span>
+            <a href="{{ url_for('main.staff_dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('main.logout') }}">Logout</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <h1>Payment Processing</h1>
+        
+        <!-- Vehicle Information -->
+        <div class="vehicle-info">
+            <h3>Vehicle Details</h3>
+            <div class="info-row">
+                <span class="info-label">Ticket Number:</span>
+                <span class="info-value">{{ entry.ticket_number }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Vehicle Type:</span>
+                <span class="info-value">{{ entry.vehicle_type }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Vehicle Number:</span>
+                <span class="info-value">{{ entry.vehicle_number }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Phone:</span>
+                <span class="info-value">{{ entry.phone }}</span>
+            </div>
+        </div>
+        
+        <!-- Duration Information -->
+        <div class="duration-info">
+            <h4>Parking Duration</h4>
+            <p>
+                <strong>Entry Time:</strong> {{ entry.entry_time.strftime('%Y-%m-%d %H:%M:%S') }}<br>
+                <strong>Exit Time:</strong> {{ entry.exit_time.strftime('%Y-%m-%d %H:%M:%S') }}<br>
+               
+            </p>
+        </div>
+        
+        <!-- Billing Details -->
+        <div class="billing-section">
+            <h3>Billing Details</h3>
+            <div class="bill-row">
+                <span class="bill-label">Base Charge ({{ entry.vehicle_type }}):</span>
+                <span class="bill-value">₹{{ base_amount }}</span>
+            </div>
+            {% if hours > 24 %}
+            <div class="bill-row">
+                <span class="bill-label">Overtime Charge (50%):</span>
+                <span class="bill-value">₹{{ "%.0f"|format(base_amount * 0.5) }}</span>
+            </div>
+            <div class="bill-row">
+                <span class="bill-label">Reason:</span>
+                <span class="bill-value">Parked over 24 hours</span>
+            </div>
+            {% endif %}
+            <div class="bill-row total-row">
+                <span class="bill-label">Total Amount:</span>
+                <span class="bill-value total-amount">₹{{ "%.0f"|format(total_amount) }}</span>
+            </div>
+        </div>
+        
+        <!-- Payment Methods -->
+        <div class="payment-methods">
+            <h4>Accepted Payment Methods</h4>
+            <ul>
+                <li>Cash</li>
+                
+                <li>UPI/QR Payment</li>
+                
+            </ul>
+        </div>
+        
+        <!-- Payment Form -->
+        <form method="POST" action="{{ url_for('main.process_payment', entry_id=entry.id) }}">
+            <button type="submit" class="btn">Process Payment (₹{{ "%.0f"|format(total_amount) }})</button>
+        </form>
+        
+        <a href="{{ url_for('main.vehicle_exit') }}" class="btn btn-secondary">Back to Exit</a>
+        <a href="{{ url_for('main.staff_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</body>
+</html> 
