@@ -619,7 +619,7 @@ def vehicle_exit():
         # Calculate bill
         exit_time = get_current_ist()  # Use IST directly
         
-        # Ensure both times are timezone-aware before calculation
+        # Ensure entry_time is timezone-aware before calculation
         # If entry_time is naive, assume it's in IST and localize it
         if entry.entry_time.tzinfo is None:
             ist_tz = get_ist_timezone()
@@ -627,15 +627,8 @@ def vehicle_exit():
         else:
             entry_time_aware = entry.entry_time
             
-        # If exit_time is naive, assume it's in IST and localize it
-        if entry.exit_time.tzinfo is None:
-            ist_tz = get_ist_timezone()
-            exit_time_aware = ist_tz.localize(entry.exit_time)
-        else:
-            exit_time_aware = entry.exit_time
-        
-        # Calculate duration - both times are now timezone-aware
-        duration = exit_time_aware - entry_time_aware
+        # Both entry_time and exit_time are now timezone-aware
+        duration = exit_time - entry_time_aware
         hours = duration.total_seconds() / 3600
         
         # Calculate charges using daily rates
@@ -681,7 +674,7 @@ def select_vehicle(entry_id):
     # Calculate bill
     exit_time = get_current_ist()  # Use IST directly
     
-    # Ensure both times are timezone-aware before calculation
+    # Ensure entry_time is timezone-aware before calculation
     # If entry_time is naive, assume it's in IST and localize it
     if entry.entry_time.tzinfo is None:
         ist_tz = get_ist_timezone()
@@ -689,15 +682,8 @@ def select_vehicle(entry_id):
     else:
         entry_time_aware = entry.entry_time
         
-    # If exit_time is naive, assume it's in IST and localize it
-    if entry.exit_time.tzinfo is None:
-        ist_tz = get_ist_timezone()
-        exit_time_aware = ist_tz.localize(entry.exit_time)
-    else:
-        exit_time_aware = entry.exit_time
-    
-    # Calculate duration - both times are now timezone-aware
-    duration = exit_time_aware - entry_time_aware
+    # Both entry_time and exit_time are now timezone-aware
+    duration = exit_time - entry_time_aware
     hours = duration.total_seconds() / 3600
     
     # Calculate charges using daily rates
