@@ -393,20 +393,23 @@ def vehicle_entry():
         phone = request.form.get('phone')
         device = f'Terminal - {current_user.username}'  # Include user username
         
-        # Normalize vehicle number (remove spaces, convert to uppercase)
+        # Normalize vehicle number/token (remove spaces, convert to uppercase)
         vehicle_number = vehicle_number.replace(' ', '').upper()
         
         # Normalize phone number (remove spaces, dashes, and other characters)
         phone = ''.join(filter(str.isdigit, phone))
         
-        # Check if vehicle is already parked
+        # Check if vehicle/token is already parked
         existing_entry = Entry.query.filter_by(
             vehicle_number=vehicle_number, 
             paid=False
         ).first()
         
         if existing_entry:
-            flash(f'Vehicle {vehicle_number} is already parked. Please process exit first.', 'error')
+            if vehicle_type == 'Cycle':
+                flash(f'Cycle token {vehicle_number} is already parked. Please process exit first.', 'error')
+            else:
+                flash(f'Vehicle {vehicle_number} is already parked. Please process exit first.', 'error')
             return render_template('vehicle_entry.html', title='Register Vehicle')
         
         # Generate ticket number with ASR prefix (reset daily)
@@ -556,7 +559,7 @@ def vehicle_exit():
                     flash('Invalid QR code format or no active parking found.', 'error')
                     return render_template('vehicle_exit.html', title='Vehicle Exit')
         else:
-            # Search by vehicle number (normalize the search value)
+            # Search by vehicle number/token (normalize the search value)
             normalized_search = search_value.replace(' ', '').upper()
             entry = Entry.query.filter_by(vehicle_number=normalized_search, paid=False).first()
         
@@ -565,7 +568,10 @@ def vehicle_exit():
             return render_template('vehicle_exit.html', title='Vehicle Exit')
         
         if entry.exit_time:
-            flash('Vehicle has already been processed for exit.', 'error')
+            if entry.vehicle_type == 'Cycle':
+                flash('Cycle has already been processed for exit.', 'error')
+            else:
+                flash('Vehicle has already been processed for exit.', 'error')
             return render_template('vehicle_exit.html', title='Vehicle Exit')
         
         # Calculate bill

@@ -201,7 +201,7 @@
                 <span>{{ entry.vehicle_type }}</span>
             </div>
             <div class="row">
-                <span class="label">Vehicle No:</span>
+                <span class="label">{% if entry.vehicle_type == 'Cycle' %}Cycle Token:{% else %}Vehicle No:{% endif %}</span>
                 <span>{{ entry.vehicle_number }}</span>
             </div>
             <div class="row">
