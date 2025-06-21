@@ -2,9 +2,11 @@ Flask
 Flask-SQLAlchemy
 Flask-Login
 Flask-Migrate
+Werkzeug
 python-dotenv
 qrcode[pil]
 pandas
 openpyxl
 gunicorn
 pytz
+psycopg2-binary

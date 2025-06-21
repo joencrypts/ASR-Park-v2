@@ -15,7 +15,15 @@ migrate = Migrate()
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+    
+    # Database configuration - use PostgreSQL in production, SQLite for development
+    if os.environ.get('DATABASE_URL'):
+        # Production: Use PostgreSQL
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+    else:
+        # Development: Use SQLite
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+    
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
