@@ -1134,12 +1134,22 @@ def calculate_daily_charges(entry_time, exit_time, vehicle_type):
     
     base_amount = daily_charges.get(vehicle_type, 50)
     
-    # Get entry and exit dates (midnight to midnight)
-    entry_date = entry_time.date()
-    exit_date = exit_time.date()
+    # Ensure both times are timezone-aware and in IST
+    from app.utils import get_ist_time
+    entry_time_aware = get_ist_time(entry_time)
+    exit_time_aware = get_ist_time(exit_time)
+    
+    # Get entry and exit dates (midnight to midnight) in IST
+    entry_date = entry_time_aware.date()
+    exit_date = exit_time_aware.date()
     
     # Calculate number of days
     days_diff = (exit_date - entry_date).days
+    
+    # Debug information (you can remove this after testing)
+    print(f"DEBUG: Entry time: {entry_time_aware}, Entry date: {entry_date}")
+    print(f"DEBUG: Exit time: {exit_time_aware}, Exit date: {exit_date}")
+    print(f"DEBUG: Days difference: {days_diff}")
     
     # If same day, charge for 1 day
     if days_diff == 0:
