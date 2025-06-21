@@ -566,7 +566,23 @@ def vehicle_exit():
         elif search_type == 'phone':
             # Search by phone number (normalize the search value)
             normalized_phone = ''.join(filter(str.isdigit, search_value))
-            entry = Entry.query.filter_by(phone=normalized_phone, paid=False).first()
+            
+            # Check if there are multiple vehicles with this phone number
+            vehicles_with_phone = Entry.query.filter_by(phone=normalized_phone, paid=False).all()
+            
+            if not vehicles_with_phone:
+                flash('No active parking found for this phone number.', 'error')
+                return render_template('vehicle_exit.html', title='Vehicle Exit')
+            
+            if len(vehicles_with_phone) == 1:
+                # Only one vehicle, proceed directly
+                entry = vehicles_with_phone[0]
+            else:
+                # Multiple vehicles found, show selection page
+                return render_template('vehicle_selection.html', 
+                                     title='Select Vehicle',
+                                     vehicles=vehicles_with_phone,
+                                     phone_number=normalized_phone)
         else:
             # Search by vehicle number/token (normalize the search value)
             normalized_search = search_value.replace(' ', '').upper()
@@ -622,6 +638,63 @@ def vehicle_exit():
                              total_amount=total_amount)
     
     return render_template('vehicle_exit.html', title='Vehicle Exit')
+
+@main.route('/staff/select-vehicle/<int:entry_id>')
+@login_required
+def select_vehicle(entry_id):
+    """Process exit for a specific vehicle selected from multiple options"""
+    if current_user.role not in ['admin', 'staff']:
+        flash('Access denied. Staff or Admin privileges required.', 'error')
+        return redirect(url_for('main.index'))
+    
+    entry = Entry.query.get_or_404(entry_id)
+    
+    if entry.paid:
+        flash('This vehicle has already been processed for exit.', 'error')
+        return redirect(url_for('main.vehicle_exit'))
+    
+    if entry.exit_time:
+        if entry.vehicle_type == 'Cycle':
+            flash('Cycle has already been processed for exit.', 'error')
+        else:
+            flash('Vehicle has already been processed for exit.', 'error')
+        return redirect(url_for('main.vehicle_exit'))
+    
+    # Calculate bill
+    exit_time = get_current_device_time()
+    duration = exit_time - entry.entry_time
+    hours = duration.total_seconds() / 3600
+    
+    # Updated base charges
+    base_charges = {
+        'Bike': 10,
+        'Car': 50,
+        'Auto': 30,
+        'Cycle': 5,
+        'Van': 80,
+        'Bus': 80,
+        'Lorry': 100
+    }
+    
+    base_amount = base_charges.get(entry.vehicle_type, 30)
+    
+    # Calculate total amount based on 24-hour periods
+    complete_24_hour_periods = int(hours // 24) + 1  # Add 1 for the first 24 hours
+    total_amount = base_amount * complete_24_hour_periods
+    
+    # Update entry with exit time and amount
+    entry.exit_time = exit_time
+    entry.amount = total_amount
+    entry.device = f'Exit Terminal - {current_user.username}'  # Update device with exit user
+    
+    db.session.commit()
+    
+    return render_template('payment_page.html', 
+                         title='Payment',
+                         entry=entry,
+                         hours=hours,
+                         base_amount=base_amount,
+                         total_amount=total_amount)
 
 @main.route('/staff/process-payment/<int:entry_id>', methods=['POST'])
 @login_required

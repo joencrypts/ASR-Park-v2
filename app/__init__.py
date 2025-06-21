@@ -4,7 +4,7 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 import os
 from dotenv import load_dotenv
-from app.utils import format_device_time_full, format_device_time_medium, format_device_time_short, format_device_date, format_device_date_short, format_device_time_receipt, format_device_receipt_id, format_ist_time_full, format_ist_time_medium, format_ist_time_short, format_ist_date, format_ist_date_short, format_ist_time_receipt, format_ist_receipt_id
+from app.utils import format_device_time_full, format_device_time_medium, format_device_time_short, format_device_date, format_device_date_short, format_device_time_receipt, format_device_receipt_id, format_ist_time_full, format_ist_time_medium, format_ist_time_short, format_ist_date, format_ist_date_short, format_ist_time_receipt, format_ist_receipt_id, get_current_device_time
 
 load_dotenv()
 
@@ -42,6 +42,9 @@ def create_app():
     app.jinja_env.filters['ist_date_short'] = format_ist_date_short
     app.jinja_env.filters['ist_receipt'] = format_ist_time_receipt
     app.jinja_env.filters['ist_receipt_id'] = format_ist_receipt_id
+
+    # Add get_current_device_time to template context
+    app.jinja_env.globals['get_current_device_time'] = get_current_device_time
 
     from app.routes import main as main_blueprint
     app.register_blueprint(main_blueprint)
