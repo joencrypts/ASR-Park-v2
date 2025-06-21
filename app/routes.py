@@ -620,11 +620,13 @@ def vehicle_exit():
         exit_time = get_current_device_time()
         # Ensure entry_time is timezone-aware for calculation
         entry_time_aware = get_ist_time(entry.entry_time)
-        duration = exit_time - entry_time_aware
+        # Ensure exit_time is also properly converted to IST
+        exit_time_aware = get_ist_time(exit_time)
+        duration = exit_time_aware - entry_time_aware
         hours = duration.total_seconds() / 3600
         
         # Calculate charges using daily rates
-        total_amount, total_days = calculate_daily_charges(entry_time_aware, exit_time, entry.vehicle_type)
+        total_amount, total_days = calculate_daily_charges(entry_time_aware, exit_time_aware, entry.vehicle_type)
         
         # Update entry with exit time and amount
         entry.exit_time = exit_time
@@ -667,11 +669,13 @@ def select_vehicle(entry_id):
     exit_time = get_current_device_time()
     # Ensure entry_time is timezone-aware for calculation
     entry_time_aware = get_ist_time(entry.entry_time)
-    duration = exit_time - entry_time_aware
+    # Ensure exit_time is also properly converted to IST
+    exit_time_aware = get_ist_time(exit_time)
+    duration = exit_time_aware - entry_time_aware
     hours = duration.total_seconds() / 3600
     
     # Calculate charges using daily rates
-    total_amount, total_days = calculate_daily_charges(entry_time_aware, exit_time, entry.vehicle_type)
+    total_amount, total_days = calculate_daily_charges(entry_time_aware, exit_time_aware, entry.vehicle_type)
     
     # Update entry with exit time and amount
     entry.exit_time = exit_time
