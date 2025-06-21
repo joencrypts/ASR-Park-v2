@@ -13,6 +13,7 @@ import pandas as pd
 import tempfile
 import os
 import json
+import pytz
 
 main = Blueprint('main', __name__)
 
@@ -382,6 +383,22 @@ def exited_vehicles():
                          title='Exited Vehicles',
                          exited_vehicles=exited_vehicles)
 
+def parse_ist_time_from_frontend(ist_time_str):
+    """
+    Parse IST time string from frontend and convert to timezone-aware datetime
+    """
+    if not ist_time_str:
+        return get_current_ist()
+    
+    try:
+        # Parse ISO string and convert to IST
+        dt = datetime.fromisoformat(ist_time_str.replace('Z', '+00:00'))
+        ist_tz = get_ist_timezone()
+        return dt.astimezone(ist_tz)
+    except:
+        # Fallback to current IST time if parsing fails
+        return get_current_ist()
+
 @main.route('/staff/vehicle-entry', methods=['GET', 'POST'])
 @login_required
 def vehicle_entry():
@@ -464,6 +481,10 @@ def vehicle_entry():
             
             ticket_number = f"ASR{next_number:05d}"
         
+        # Get IST time from frontend or use current IST time
+        ist_time_str = request.form.get('ist_time')
+        entry_time = parse_ist_time_from_frontend(ist_time_str)
+        
         # Create new entry
         new_entry = Entry(
             ticket_number=ticket_number,
@@ -471,7 +492,7 @@ def vehicle_entry():
             vehicle_number=vehicle_number,
             phone=phone,
             device=device,
-            entry_time=get_current_device_time()
+            entry_time=entry_time
         )
         
         db.session.add(new_entry)
@@ -617,7 +638,9 @@ def vehicle_exit():
             return render_template('vehicle_exit.html', title='Vehicle Exit')
         
         # Calculate bill
-        exit_time = get_current_ist()  # Use IST directly
+        # Get IST time from frontend or use current IST time
+        ist_time_str = request.form.get('ist_time')
+        exit_time = parse_ist_time_from_frontend(ist_time_str)
         
         # Ensure entry_time is timezone-aware before calculation
         # If entry_time is naive, assume it's in IST and localize it
@@ -672,7 +695,9 @@ def select_vehicle(entry_id):
         return redirect(url_for('main.vehicle_exit'))
     
     # Calculate bill
-    exit_time = get_current_ist()  # Use IST directly
+    # Get IST time from frontend or use current IST time
+    ist_time_str = request.form.get('ist_time')
+    exit_time = parse_ist_time_from_frontend(ist_time_str)
     
     # Ensure entry_time is timezone-aware before calculation
     # If entry_time is naive, assume it's in IST and localize it

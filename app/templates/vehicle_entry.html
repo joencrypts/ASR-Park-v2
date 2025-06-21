@@ -284,6 +284,36 @@
                 padding-bottom: 15px;
             }
         }
+        
+        .live-clock {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+            min-width: 200px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        .clock-time {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        
+        .clock-date {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .clock-day {
+            font-size: 11px;
+            opacity: 0.8;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
@@ -293,6 +323,11 @@
             <h1>ASR Parking Lot - Vehicle Entry</h1>
         </div>
         <div class="navbar-right">
+            <div class="live-clock">
+                <div class="clock-time" id="clock-time">--:--:--</div>
+                <div class="clock-date" id="clock-date">--/--/----</div>
+                <div class="clock-day" id="clock-day">--</div>
+            </div>
             <span>Welcome, {{ current_user.username }} ({{ current_user.role }})</span>
             <a href="{{ url_for('main.staff_dashboard') }}">Dashboard</a>
             <a href="{{ url_for('main.logout') }}">Logout</a>
@@ -366,13 +401,55 @@
     </div>
 
     <script>
+        // Live IST Clock
+        function updateClock() {
+            const now = new Date();
+            // Convert to IST (UTC+5:30)
+            const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+            const istTime = new Date(now.getTime() + istOffset);
+            // Format time
+            const hours = String(istTime.getUTCHours()).padStart(2, '0');
+            const minutes = String(istTime.getUTCMinutes()).padStart(2, '0');
+            const seconds = String(istTime.getUTCSeconds()).padStart(2, '0');
+            // Format date
+            const day = String(istTime.getUTCDate()).padStart(2, '0');
+            const month = String(istTime.getUTCMonth() + 1).padStart(2, '0');
+            const year = istTime.getUTCFullYear();
+            // Get day name
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const dayName = days[istTime.getUTCDay()];
+            // Update DOM
+            document.getElementById('clock-time').textContent = hours + ':' + minutes + ':' + seconds;
+            document.getElementById('clock-date').textContent = day + '/' + month + '/' + year;
+            document.getElementById('clock-day').textContent = dayName;
+            // Store current IST time for form submissions
+            window.currentISTTime = istTime.toISOString();
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+        // Add IST time to form on submit
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('form');
+            forms.forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    var timeInput = form.querySelector('input[name="ist_time"]');
+                    if (!timeInput) {
+                        timeInput = document.createElement('input');
+                        timeInput.type = 'hidden';
+                        timeInput.name = 'ist_time';
+                        form.appendChild(timeInput);
+                    }
+                    timeInput.value = window.currentISTTime || new Date().toISOString();
+                });
+            });
+        });
+        // Existing vehicle type logic
         document.getElementById('vehicle_type').addEventListener('change', function() {
             const vehicleType = this.value;
             const vehicleLabel = document.getElementById('vehicle_label');
             const vehicleInput = document.getElementById('vehicle_number');
             const vehicleGroup = document.getElementById('vehicle_number_group');
             const cycleInfo = document.getElementById('cycle_info');
-            
             if (vehicleType === 'Cycle') {
                 vehicleGroup.style.display = 'none';
                 vehicleInput.required = false;
