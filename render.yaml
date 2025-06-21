@@ -3,9 +3,11 @@ services:
     name: asr-parking-lot
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn run:app
+    startCommand: python init_render_db.py && gunicorn run:app
     envVars:
       - key: FLASK_ENV
         value: production
       - key: FLASK_DEBUG
         value: false
+      - key: SECRET_KEY
+        generateValue: true

@@ -6,4 +6,5 @@ python-dotenv
 qrcode[pil]
 pandas
 openpyxl
-gunicorn 
+gunicorn
+psycopg2-binary 
