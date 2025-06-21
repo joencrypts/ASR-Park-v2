@@ -5,7 +5,7 @@ from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, date, timedelta
 from sqlalchemy import func, and_
-from app.utils import get_current_device_time, get_ist_time, format_ist_time_full, format_ist_time_medium, format_ist_time_short, format_ist_date, format_ist_date_short, format_ist_time_receipt, format_ist_receipt_id
+from app.utils import get_current_device_time, get_ist_time, format_ist_time_full, format_ist_time_medium, format_ist_time_short, format_ist_date, format_ist_date_short, format_ist_time_receipt, format_ist_receipt_id, get_current_ist
 import qrcode
 import io
 import base64
@@ -617,16 +617,13 @@ def vehicle_exit():
             return render_template('vehicle_exit.html', title='Vehicle Exit')
         
         # Calculate bill
-        exit_time = get_current_device_time()
-        # Ensure entry_time is timezone-aware for calculation
-        entry_time_aware = get_ist_time(entry.entry_time)
-        # Ensure exit_time is also properly converted to IST
-        exit_time_aware = get_ist_time(exit_time)
-        duration = exit_time_aware - entry_time_aware
+        exit_time = get_current_ist()  # Use IST directly
+        # Both entry_time and exit_time are now in IST
+        duration = exit_time - entry.entry_time
         hours = duration.total_seconds() / 3600
         
         # Calculate charges using daily rates
-        total_amount, total_days = calculate_daily_charges(entry_time_aware, exit_time_aware, entry.vehicle_type)
+        total_amount, total_days = calculate_daily_charges(entry.entry_time, exit_time, entry.vehicle_type)
         
         # Update entry with exit time and amount
         entry.exit_time = exit_time
@@ -666,16 +663,13 @@ def select_vehicle(entry_id):
         return redirect(url_for('main.vehicle_exit'))
     
     # Calculate bill
-    exit_time = get_current_device_time()
-    # Ensure entry_time is timezone-aware for calculation
-    entry_time_aware = get_ist_time(entry.entry_time)
-    # Ensure exit_time is also properly converted to IST
-    exit_time_aware = get_ist_time(exit_time)
-    duration = exit_time_aware - entry_time_aware
+    exit_time = get_current_ist()  # Use IST directly
+    # Both entry_time and exit_time are now in IST
+    duration = exit_time - entry.entry_time
     hours = duration.total_seconds() / 3600
     
     # Calculate charges using daily rates
-    total_amount, total_days = calculate_daily_charges(entry_time_aware, exit_time_aware, entry.vehicle_type)
+    total_amount, total_days = calculate_daily_charges(entry.entry_time, exit_time, entry.vehicle_type)
     
     # Update entry with exit time and amount
     entry.exit_time = exit_time
@@ -800,10 +794,8 @@ def exit_receipt(entry_id):
     # Calculate charges using daily rates
     total_amount, total_days = calculate_daily_charges(entry.entry_time, entry.exit_time, entry.vehicle_type)
     
-    # Calculate duration with timezone-aware datetimes
-    entry_time_aware = get_ist_time(entry.entry_time)
-    exit_time_aware = get_ist_time(entry.exit_time)
-    duration = exit_time_aware - entry_time_aware
+    # Calculate duration - both times are already in IST
+    duration = entry.exit_time - entry.entry_time
     hours = duration.total_seconds() / 3600
     
     return render_template('exit_receipt.html', 
@@ -1123,8 +1115,8 @@ def generate_cycle_token():
 def calculate_daily_charges(entry_time, exit_time, vehicle_type):
     """
     Calculate charges based on daily rates (midnight to midnight)
+    Both entry_time and exit_time should be in IST
     """
-    from app.utils import get_ist_time
     # Updated base charges per day
     daily_charges = {
         'Bike': 10,
@@ -1139,28 +1131,17 @@ def calculate_daily_charges(entry_time, exit_time, vehicle_type):
     
     base_amount = daily_charges.get(vehicle_type, 50)
     
-    # Always convert both times to IST
-    entry_time_ist = get_ist_time(entry_time)
-    exit_time_ist = get_ist_time(exit_time)
+    # Both times should already be in IST, so we can work directly with them
+    # Get the date part (YYYY-MM-DD)
+    entry_date = entry_time.date()
+    exit_date = exit_time.date()
     
-    # Convert to string format first to avoid timezone issues
-    # Format: YYYY-MM-DD HH:MM:SS
-    entry_str = entry_time_ist.strftime('%Y-%m-%d %H:%M:%S')
-    exit_str = exit_time_ist.strftime('%Y-%m-%d %H:%M:%S')
-    
-    # Extract just the date part (YYYY-MM-DD)
-    entry_date_str = entry_str.split(' ')[0]
-    exit_date_str = exit_str.split(' ')[0]
-    
-    # Compare dates as strings
-    if entry_date_str == exit_date_str:
+    # Compare dates directly
+    if entry_date == exit_date:
         return base_amount, 1
     else:
-        # Calculate days difference by parsing dates
-        from datetime import datetime
-        entry_date_obj = datetime.strptime(entry_date_str, '%Y-%m-%d').date()
-        exit_date_obj = datetime.strptime(exit_date_str, '%Y-%m-%d').date()
-        days_diff = (exit_date_obj - entry_date_obj).days
+        # Calculate days difference
+        days_diff = (exit_date - entry_date).days
         total_days = days_diff + 1
         total_amount = base_amount * total_days
         return total_amount, total_days 
