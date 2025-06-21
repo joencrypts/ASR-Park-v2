@@ -2,23 +2,35 @@ from app import create_app, db
 from app.models import User, Entry
 from flask_migrate import upgrade, init, migrate
 import os
+import shutil
 
 def setup_database():
     app = create_app()
     with app.app_context():
-        # Initialize migrations if not already done
+        # Remove existing migrations folder if it exists (for fresh start)
+        migrations_dir = 'migrations'
+        if os.path.exists(migrations_dir):
+            try:
+                shutil.rmtree(migrations_dir)
+                print("Removed existing migrations folder")
+            except Exception as e:
+                print(f"Could not remove migrations folder: {e}")
+        
+        # Initialize fresh migrations
         try:
             init()
             print("Migrations initialized!")
         except Exception as e:
-            print(f"Migrations already initialized or error: {e}")
+            print(f"Migrations initialization error: {e}")
+            return
         
-        # Create migration
+        # Create initial migration
         try:
-            migrate()
-            print("Migration created!")
+            migrate(message="Initial migration")
+            print("Initial migration created!")
         except Exception as e:
-            print(f"Migration error: {e}")
+            print(f"Migration creation error: {e}")
+            return
         
         # Apply migrations
         try:
@@ -26,6 +38,7 @@ def setup_database():
             print("Migrations applied successfully!")
         except Exception as e:
             print(f"Upgrade error: {e}")
+            return
         
         # Check if admin user already exists
         admin_user = User.query.filter_by(email='dmr@asr.com').first()

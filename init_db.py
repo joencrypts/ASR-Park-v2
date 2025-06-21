@@ -5,7 +5,7 @@ from datetime import datetime
 def init_database():
     app = create_app()
     with app.app_context():
-        # Create all tables
+        # Create all tables (this works for both SQLite and PostgreSQL)
         db.create_all()
         print("Database tables created successfully!")
         
@@ -26,6 +26,8 @@ def init_database():
             print("Default users created:")
             print("Admin: admin / dmr@asr.com / azeedmr123")
             print("Staff: staff / staff1@asr.com / staff1@54321")
+        else:
+            print("Default users already exist!")
 
 if __name__ == '__main__':
     init_database() 
