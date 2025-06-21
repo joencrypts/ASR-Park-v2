@@ -5,7 +5,7 @@ from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, date, timedelta
 from sqlalchemy import func, and_
-from app.utils import get_current_ist, format_ist_time_full, format_ist_time_medium, format_ist_time_short, format_ist_date, format_ist_date_short, format_ist_time_receipt, format_ist_receipt_id
+from app.utils import get_current_device_time, format_device_time_full, format_device_time_medium, format_device_time_short, format_device_date, format_device_date_short, format_device_time_receipt, format_device_receipt_id
 import qrcode
 import io
 import base64
@@ -196,8 +196,8 @@ def export_logs():
             'Vehicle Type': entry.vehicle_type,
             'Vehicle Number': entry.vehicle_number,
             'Phone': entry.phone,
-            'Entry Time': format_ist_time_full(entry.entry_time),
-            'Exit Time': format_ist_time_full(entry.exit_time) if entry.exit_time else 'Active',
+            'Entry Time': format_device_time_full(entry.entry_time),
+            'Exit Time': format_device_time_full(entry.exit_time) if entry.exit_time else 'Active',
             'Duration': duration or 'Active',
             'Amount (₹)': entry.amount if entry.amount else 0,
             'Payment Status': 'Paid' if entry.paid else 'Unpaid',
@@ -317,7 +317,7 @@ def staff_dashboard():
         return redirect(url_for('main.index'))
     
     # Get current time and 24 hours ago
-    now = get_current_ist()
+    now = get_current_device_time()
     twenty_four_hours_ago = now - timedelta(hours=24)
     
     # Get vehicles entered in the past 24 hours
@@ -461,7 +461,7 @@ def vehicle_entry():
             vehicle_number=vehicle_number,
             phone=phone,
             device=device,
-            entry_time=get_current_ist()
+            entry_time=get_current_device_time()
         )
         
         db.session.add(new_entry)
@@ -569,7 +569,7 @@ def vehicle_exit():
             return render_template('vehicle_exit.html', title='Vehicle Exit')
         
         # Calculate bill
-        exit_time = get_current_ist()
+        exit_time = get_current_device_time()
         duration = exit_time - entry.entry_time
         hours = duration.total_seconds() / 3600
         
@@ -837,7 +837,7 @@ def staff_progress():
     staff_members = User.query.filter_by(role='staff').all()
     
     # Get current time and 24 hours ago
-    now = get_current_ist()
+    now = get_current_device_time()
     twenty_four_hours_ago = now - timedelta(hours=24)
     
     # Calculate staff performance
@@ -894,7 +894,7 @@ def staff_details(staff_id):
         return redirect(url_for('main.staff_progress'))
     
     # Get current time and 24 hours ago
-    now = get_current_ist()
+    now = get_current_device_time()
     twenty_four_hours_ago = now - timedelta(hours=24)
     
     # Get recent entries by this staff (last 50)

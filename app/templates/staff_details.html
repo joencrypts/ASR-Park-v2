@@ -541,7 +541,7 @@
                             <td>{{ entry.vehicle_number }}</td>
                             <td>{{ entry.vehicle_type }}</td>
                             <td>{{ entry.phone }}</td>
-                            <td>{{ entry.entry_time | ist_medium }}</td>
+                            <td>{{ entry.entry_time | device_medium }}</td>
                             <td>
                                 {% if entry.exit_time %}
                                     <span class="efficiency-indicator efficiency-high">Exited</span>
@@ -581,8 +581,8 @@
                             <td>{{ exit.ticket_number }}</td>
                             <td>{{ exit.vehicle_number }}</td>
                             <td>{{ exit.vehicle_type }}</td>
-                            <td>{{ exit.entry_time | ist_medium }}</td>
-                            <td>{{ exit.exit_time | ist_medium }}</td>
+                            <td>{{ exit.entry_time | device_medium }}</td>
+                            <td>{{ exit.exit_time | device_medium }}</td>
                             <td>₹{{ "%.0f"|format(exit.amount or 0) }}</td>
                             <td>
                                 {% if exit.paid %}

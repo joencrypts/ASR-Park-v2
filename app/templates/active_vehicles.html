@@ -358,7 +358,7 @@
                         <td>{{ vehicle.vehicle_number }}</td>
                         <td>{{ vehicle.vehicle_type }}</td>
                         <td>{{ vehicle.phone }}</td>
-                        <td>{{ vehicle.entry_time | ist_medium }}</td>
+                        <td>{{ vehicle.entry_time | device_medium }}</td>
                         <td>{{ vehicle.device }}</td>
                         <td>
                             <a href="{{ url_for('main.print_receipt', entry_id=vehicle.id) }}" 

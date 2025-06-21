@@ -376,8 +376,8 @@
                         <td>{{ vehicle.ticket_number }}</td>
                         <td>{{ vehicle.vehicle_number }}</td>
                         <td>{{ vehicle.vehicle_type }}</td>
-                        <td>{{ vehicle.entry_time | ist_medium }}</td>
-                        <td>{{ vehicle.exit_time | ist_medium }}</td>
+                        <td>{{ vehicle.entry_time | device_medium }}</td>
+                        <td>{{ vehicle.exit_time | device_medium }}</td>
                         <td>₹{{ "%.0f"|format(vehicle.amount or 0) }}</td>
                         <td>
                             {% if vehicle.paid %}

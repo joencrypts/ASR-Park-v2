@@ -2,7 +2,7 @@ from app import db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
-from app.utils import get_current_ist
+from app.utils import get_current_device_time
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -27,7 +27,7 @@ class Entry(db.Model):
     vehicle_number = db.Column(db.String(20), nullable=False)
     phone = db.Column(db.String(15), nullable=False)
     device = db.Column(db.String(50), nullable=False)
-    entry_time = db.Column(db.DateTime, default=get_current_ist, nullable=False)
+    entry_time = db.Column(db.DateTime, default=get_current_device_time, nullable=False)
     exit_time = db.Column(db.DateTime, nullable=True)
     paid = db.Column(db.Boolean, default=False, nullable=False)
     amount = db.Column(db.Float, nullable=True)
