@@ -68,4 +68,8 @@ def get_current_ist():
     """
     Get current IST time
     """
+<<<<<<< HEAD
     return get_ist_time() 
+=======
+    return get_ist_time() 
+>>>>>>> 93d4c1b97f845d16a6cb84885f13651fe2666045

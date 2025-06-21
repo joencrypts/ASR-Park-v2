@@ -7,4 +7,8 @@ qrcode[pil]
 pandas
 openpyxl
 gunicorn
+<<<<<<< HEAD
 pytz 
+=======
+pytz 
+>>>>>>> 93d4c1b97f845d16a6cb84885f13651fe2666045

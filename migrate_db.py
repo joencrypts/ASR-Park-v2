@@ -22,20 +22,20 @@ def setup_migrations():
         print("Migration applied!")
         
         # Create default users
-        admin_user = User.query.filter_by(email='admin@asrparking.com').first()
+        admin_user = User.query.filter_by(email='dmr@asr.com').first()
         if not admin_user:
-            admin = User(email='admin@asrparking.com', role='admin')
-            admin.set_password('admin123')
+            admin = User(email='dmr@asr.com', role='admin')
+            admin.set_password('azeedmr123')
             db.session.add(admin)
             
-            staff = User(email='staff@asrparking.com', role='staff')
-            staff.set_password('staff123')
+            staff = User(email='staff1@asr.com', role='staff')
+            staff.set_password('staff1@54321')
             db.session.add(staff)
             
             db.session.commit()
             print("Default users created:")
-            print("Admin: admin@asrparking.com / admin123")
-            print("Staff: staff@asrparking.com / staff123")
+            print("Admin: dmr@asr.com / azeedmr123")
+            print("Staff: staff1@asr.com / staff1@54321")
 
 if __name__ == '__main__':
     setup_migrations() 

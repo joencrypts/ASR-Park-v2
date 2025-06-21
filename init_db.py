@@ -10,22 +10,22 @@ def init_database():
         print("Database tables created successfully!")
         
         # Check if admin user already exists
-        admin_user = User.query.filter_by(email='admin@asrparking.com').first()
+        admin_user = User.query.filter_by(email='dmr@asr.com').first()
         if not admin_user:
             # Create admin user
-            admin = User(username='admin', email='admin@asrparking.com', role='admin')
-            admin.set_password('admin123')
+            admin = User(username='admin', email='dmr@asr.com', role='admin')
+            admin.set_password('azeedmr123')
             db.session.add(admin)
             
             # Create staff user
-            staff = User(username='staff', email='staff@asrparking.com', role='staff')
-            staff.set_password('staff123')
+            staff = User(username='staff', email='staff1@asr.com', role='staff')
+            staff.set_password('staff1@54321')
             db.session.add(staff)
             
             db.session.commit()
             print("Default users created:")
-            print("Admin: admin / admin@asrparking.com / admin123")
-            print("Staff: staff / staff@asrparking.com / staff123")
+            print("Admin: admin / dmr@asr.com / azeedmr123")
+            print("Staff: staff / staff1@asr.com / staff1@54321")
 
 if __name__ == '__main__':
     init_database() 
