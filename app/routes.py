@@ -393,11 +393,16 @@ def vehicle_entry():
         phone = request.form.get('phone')
         device = f'Terminal - {current_user.username}'  # Include user username
         
-        # Normalize vehicle number/token (remove spaces, convert to uppercase)
-        vehicle_number = vehicle_number.replace(' ', '').upper()
-        
         # Normalize phone number (remove spaces, dashes, and other characters)
         phone = ''.join(filter(str.isdigit, phone))
+        
+        # Handle cycle token number generation
+        if vehicle_type == 'Cycle':
+            # Auto-generate cycle token number
+            vehicle_number = generate_cycle_token()
+        else:
+            # Normalize vehicle number (remove spaces, convert to uppercase)
+            vehicle_number = vehicle_number.replace(' ', '').upper()
         
         # Check if vehicle/token is already parked
         existing_entry = Entry.query.filter_by(
@@ -1018,4 +1023,38 @@ def clear_entries():
         
         return redirect(url_for('main.admin_dashboard'))
     
-    return render_template('clear_entries.html', title='Clear Entries') 
+    return render_template('clear_entries.html', title='Clear Entries')
+
+def generate_cycle_token():
+    """
+    Generate cycle token number from CYC001 to CYC999, then reset to CYC001
+    """
+    # Get all existing cycle tokens
+    cycle_entries = Entry.query.filter(
+        Entry.vehicle_type == 'Cycle'
+    ).with_entities(Entry.vehicle_number).all()
+    
+    cycle_numbers = []
+    for entry in cycle_entries:
+        vehicle_number = entry[0]
+        if vehicle_number.startswith('CYC'):
+            try:
+                # Extract number from CYC001 format
+                number = int(vehicle_number[3:])
+                cycle_numbers.append(number)
+            except ValueError:
+                continue
+    
+    if cycle_numbers:
+        # Find the next available number
+        max_number = max(cycle_numbers)
+        next_number = max_number + 1
+        
+        # If we've reached 999, reset to 1
+        if next_number > 999:
+            next_number = 1
+    else:
+        # No existing cycles, start from 1
+        next_number = 1
+    
+    return f"CYC{next_number:03d}" 

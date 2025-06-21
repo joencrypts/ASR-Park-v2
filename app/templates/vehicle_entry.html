@@ -333,10 +333,17 @@
                 </select>
             </div>
             
-            <div class="form-group">
+            <div class="form-group" id="vehicle_number_group">
                 <label for="vehicle_number" id="vehicle_label">Vehicle Number:</label>
                 <input type="text" id="vehicle_number" name="vehicle_number" 
-                       placeholder="e.g., TN 75 AA 8989 or TN75AA8989" required>
+                       placeholder="e.g., TN 75 AA 8989 or TN75AA8989">
+            </div>
+            
+            <div class="form-group" id="cycle_info" style="display: none;">
+                <div style="background-color: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
+                    <strong>ℹ️ Cycle Token Information:</strong><br>
+                    Cycle token numbers are automatically generated (CYC001, CYC002, etc.) and will be assigned when you submit the form.
+                </div>
             </div>
             
             <div class="form-group">
@@ -362,12 +369,17 @@
             const vehicleType = this.value;
             const vehicleLabel = document.getElementById('vehicle_label');
             const vehicleInput = document.getElementById('vehicle_number');
+            const vehicleGroup = document.getElementById('vehicle_number_group');
+            const cycleInfo = document.getElementById('cycle_info');
             
             if (vehicleType === 'Cycle') {
-                vehicleLabel.textContent = 'Cycle Token Number:';
-                vehicleInput.placeholder = 'e.g., CYC001, CYC002, etc.';
-                vehicleInput.value = '';
+                vehicleGroup.style.display = 'none';
+                vehicleInput.required = false;
+                cycleInfo.style.display = 'block';
             } else {
+                vehicleGroup.style.display = 'block';
+                vehicleInput.required = true;
+                cycleInfo.style.display = 'none';
                 vehicleLabel.textContent = 'Vehicle Number:';
                 vehicleInput.placeholder = 'e.g., TN 75 AA 8989 or TN75AA8989';
                 vehicleInput.value = '';
