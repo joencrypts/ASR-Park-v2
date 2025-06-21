@@ -1164,10 +1164,34 @@ def calculate_daily_charges(entry_time, exit_time, vehicle_type):
     
     base_amount = daily_charges.get(vehicle_type, 50)
     
-    # Both times should already be in IST, so we can work directly with them
-    # Get the date part (YYYY-MM-DD)
-    entry_date = entry_time.date()
-    exit_date = exit_time.date()
+    # Ensure both times are in IST timezone for proper date comparison
+    ist_tz = get_ist_timezone()
+    
+    # Convert entry_time to IST if needed
+    if entry_time.tzinfo is None:
+        # If naive, assume it's already in IST
+        entry_time_ist = ist_tz.localize(entry_time)
+    elif entry_time.tzinfo != ist_tz:
+        # If different timezone, convert to IST
+        entry_time_ist = entry_time.astimezone(ist_tz)
+    else:
+        # Already in IST
+        entry_time_ist = entry_time
+    
+    # Convert exit_time to IST if needed
+    if exit_time.tzinfo is None:
+        # If naive, assume it's already in IST
+        exit_time_ist = ist_tz.localize(exit_time)
+    elif exit_time.tzinfo != ist_tz:
+        # If different timezone, convert to IST
+        exit_time_ist = exit_time.astimezone(ist_tz)
+    else:
+        # Already in IST
+        exit_time_ist = exit_time
+    
+    # Get the date part (YYYY-MM-DD) in IST
+    entry_date = entry_time_ist.date()
+    exit_date = exit_time_ist.date()
     
     # Compare dates directly
     if entry_date == exit_date:
