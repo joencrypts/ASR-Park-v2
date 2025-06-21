@@ -668,17 +668,22 @@
         <div class="billing-section">
             <h3>Billing Details</h3>
             <div class="bill-row">
-                <span class="bill-label">Base Charge ({{ entry.vehicle_type }}):</span>
+                <span class="bill-label">Base Charge ({{ entry.vehicle_type }} - 24h):</span>
                 <span class="bill-value">₹{{ base_amount }}</span>
             </div>
-            {% if hours > 24 %}
+            {% set periods = (hours // 24) + 1 %}
+            {% if periods > 1 %}
             <div class="bill-row">
-                <span class="bill-label">Overtime Charge (50%):</span>
-                <span class="bill-value">₹{{ "%.0f"|format(base_amount * 0.5) }}</span>
+                <span class="bill-label">Additional 24h Periods:</span>
+                <span class="bill-value">{{ periods - 1 }} × ₹{{ base_amount }}</span>
+            </div>
+            <div class="bill-row">
+                <span class="bill-label">Additional Amount:</span>
+                <span class="bill-value">₹{{ "%.0f"|format(base_amount * (periods - 1)) }}</span>
             </div>
             <div class="bill-row">
                 <span class="bill-label">Reason:</span>
-                <span class="bill-value">Parked over 24 hours</span>
+                <span class="bill-value">Parked for {{ "%.1f"|format(hours) }} hours ({{ periods }} periods)</span>
             </div>
             {% endif %}
             <div class="bill-row total-row">

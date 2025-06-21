@@ -243,20 +243,23 @@
         
         <div class="billing">
             <div class="row">
-                <span class="label">Base Charge:</span>
+                <span class="label">Base Charge (24h):</span>
                 <span>₹{{ "%.0f"|format(base_amount) }}</span>
             </div>
-            {% if hours > 24 %}
+            {% if periods > 1 %}
             <div class="row">
-                <span class="label">Overtime (50%):</span>
-                <span>₹{{ "%.0f"|format(base_amount * 0.5) }}</span>
+                <span class="label">Additional Periods:</span>
+                <span>{{ periods - 1 }} × ₹{{ "%.0f"|format(base_amount) }}</span>
+            </div>
+            <div class="row">
+                <span class="label">Additional Amount:</span>
+                <span>₹{{ "%.0f"|format(base_amount * (periods - 1)) }}</span>
             </div>
             {% endif %}
-            
         </div>
         
         <div class="total">
-            TOTAL AMOUNT: ₹{{ "%.0f"|format(entry.amount or 0) }}
+            TOTAL AMOUNT: ₹{{ "%.0f"|format(total_amount) }}
         </div>
         
         <div class="footer">

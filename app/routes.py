@@ -573,24 +573,24 @@ def vehicle_exit():
         duration = exit_time - entry.entry_time
         hours = duration.total_seconds() / 3600
         
-        # Base charges
+        # Updated base charges
         base_charges = {
             'Bike': 10,
-            'Car': 30,
+            'Car': 50,
             'Auto': 30,
-            'Van': 50,
-            'Bus': 50,
-            'Lorry': 80
+            'Cycle': 5,
+            'Van': 80,
+            'Bus': 80,
+            'Lorry': 100
         }
         
         base_amount = base_charges.get(entry.vehicle_type, 30)
         
-        # Calculate total amount
-        if hours <= 24:
-            total_amount = base_amount
-        else:
-            # Add 50% for over 24 hours
-            total_amount = base_amount * 1.5
+        # Calculate total amount based on 24-hour periods
+        # For every complete 24 hours, add the base charge
+        # Example: 36 hours = 2 complete 24-hour periods = 2 * base_amount
+        complete_24_hour_periods = int(hours // 24) + 1  # Add 1 for the first 24 hours
+        total_amount = base_amount * complete_24_hour_periods
         
         # Update entry with exit time and amount
         entry.exit_time = exit_time
@@ -717,18 +717,28 @@ def exit_receipt(entry_id):
     # Calculate base amount for receipt
     base_charges = {
         'Bike': 10,
-        'Car': 30,
+        'Car': 50,
         'Auto': 30,
-        'Van': 50,
-        'Bus': 50,
-        'Lorry': 80
+        'Cycle': 5,
+        'Van': 80,
+        'Bus': 80,
+        'Lorry': 100
     }
     
     base_amount = base_charges.get(entry.vehicle_type, 30)
     
+    # Calculate total amount for receipt display
+    duration = entry.exit_time - entry.entry_time
+    hours = duration.total_seconds() / 3600
+    complete_24_hour_periods = int(hours // 24) + 1
+    total_amount = base_amount * complete_24_hour_periods
+    
     return render_template('exit_receipt.html', 
                          entry=entry,
-                         base_amount=base_amount)
+                         base_amount=base_amount,
+                         total_amount=total_amount,
+                         hours=hours,
+                         periods=complete_24_hour_periods)
 
 @main.route('/admin/users')
 @login_required
