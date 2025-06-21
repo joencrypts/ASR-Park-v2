@@ -191,7 +191,7 @@
             </div>
             <div class="row">
                 <span class="label">Receipt No:</span>
-                <span>EX{{ entry.exit_time | device_receipt_id }}</span>
+                <span>EX{{ entry.exit_time | ist_receipt_id }}</span>
             </div>
         </div>
         
@@ -213,19 +213,19 @@
         <div class="timing-info">
             <div class="row">
                 <span class="label">Entry Date:</span>
-                <span>{{ entry.entry_time | device_date_short }}</span>
+                <span>{{ entry.entry_time | ist_date_short }}</span>
             </div>
             <div class="row">
                 <span class="label">Entry Time:</span>
-                <span>{{ entry.entry_time | device_receipt }}</span>
+                <span>{{ entry.entry_time | ist_receipt }}</span>
             </div>
             <div class="row">
                 <span class="label">Exit Date:</span>
-                <span>{{ entry.exit_time | device_date_short }}</span>
+                <span>{{ entry.exit_time | ist_date_short }}</span>
             </div>
             <div class="row">
                 <span class="label">Exit Time:</span>
-                <span>{{ entry.exit_time | device_receipt }}</span>
+                <span>{{ entry.exit_time | ist_receipt }}</span>
             </div>
         </div>
         
