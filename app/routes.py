@@ -29,36 +29,31 @@ def index():
 
 @main.route('/login', methods=['GET', 'POST'])
 def login():
-    try:
-        if current_user.is_authenticated:
-            if current_user.role == 'admin':
+    if current_user.is_authenticated:
+        if current_user.role == 'admin':
+            return redirect(url_for('main.admin_dashboard'))
+        else:
+            return redirect(url_for('main.staff_dashboard'))
+    
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        user = User.query.filter_by(email=email).first()
+        
+        if user and user.check_password(password):
+            login_user(user)
+            flash('Login successful!', 'success')
+            
+            # Redirect based on role
+            if user.role == 'admin':
                 return redirect(url_for('main.admin_dashboard'))
             else:
                 return redirect(url_for('main.staff_dashboard'))
-        
-        if request.method == 'POST':
-            email = request.form.get('email')
-            password = request.form.get('password')
-            
-            user = User.query.filter_by(email=email).first()
-            
-            if user and user.check_password(password):
-                login_user(user)
-                flash('Login successful!', 'success')
-                
-                # Redirect based on role
-                if user.role == 'admin':
-                    return redirect(url_for('main.admin_dashboard'))
-                else:
-                    return redirect(url_for('main.staff_dashboard'))
-            else:
-                flash('Invalid email or password. Please try again.', 'error')
-        
-        return render_template('login.html', title='Login')
-    except Exception as e:
-        print(f"Login error: {e}")
-        flash('An error occurred during login. Please try again.', 'error')
-        return render_template('login.html', title='Login')
+        else:
+            flash('Invalid email or password. Please try again.', 'error')
+    
+    return render_template('login.html', title='Login')
 
 @main.route('/register', methods=['GET', 'POST'])
 def register():
@@ -316,87 +311,41 @@ def prepare_chart_data(entries):
 @main.route('/staff/dashboard')
 @login_required
 def staff_dashboard():
-    try:
-        if current_user.role != 'staff':
-            flash('Access denied. Staff privileges required.', 'error')
-            return redirect(url_for('main.index'))
-        
-        print(f"Staff dashboard accessed by user: {current_user.username}")
-        
-        # Test database connection first
-        try:
-            db.session.execute('SELECT 1')
-            print("✅ Database connection successful")
-        except Exception as db_error:
-            print(f"❌ Database connection failed: {db_error}")
-            flash('Database connection error. Please try again.', 'error')
-            return redirect(url_for('main.index'))
-        
-        # Get current time and 24 hours ago
-        try:
-            now = datetime.utcnow()
-            twenty_four_hours_ago = now - timedelta(hours=24)
-            print(f"✅ Time calculation successful: {now} to {twenty_four_hours_ago}")
-        except Exception as time_error:
-            print(f"❌ Time calculation error: {time_error}")
-            flash('Time calculation error. Please try again.', 'error')
-            return redirect(url_for('main.index'))
-        
-        # Get vehicles entered in the past 24 hours
-        try:
-            vehicles_entered_24h = Entry.query.filter(
-                Entry.entry_time >= twenty_four_hours_ago
-            ).count()
-            print(f"✅ Vehicles entered 24h query successful: {vehicles_entered_24h}")
-        except Exception as query_error:
-            print(f"❌ Vehicles entered query error: {query_error}")
-            vehicles_entered_24h = 0
-        
-        # Get active vehicles (entries without exit time)
-        try:
-            active_vehicles = Entry.query.filter(
-                Entry.exit_time.is_(None)
-            ).count()
-            print(f"✅ Active vehicles query successful: {active_vehicles}")
-        except Exception as query_error:
-            print(f"❌ Active vehicles query error: {query_error}")
-            active_vehicles = 0
-        
-        # Get vehicles exited in the past 24 hours
-        try:
-            vehicles_exited_24h = Entry.query.filter(
-                Entry.exit_time >= twenty_four_hours_ago
-            ).count()
-            print(f"✅ Vehicles exited 24h query successful: {vehicles_exited_24h}")
-        except Exception as query_error:
-            print(f"❌ Vehicles exited query error: {query_error}")
-            vehicles_exited_24h = 0
-        
-        # Get exit vehicles (vehicles processed for exit today) - keeping for backward compatibility
-        try:
-            today = date.today()
-            exit_vehicles = Entry.query.filter(
-                db.func.date(Entry.exit_time) == today
-            ).all()
-            print(f"✅ Exit vehicles query successful: {len(exit_vehicles)}")
-        except Exception as query_error:
-            print(f"❌ Exit vehicles query error: {query_error}")
-            exit_vehicles = []
-        
-        print("✅ All queries completed successfully")
-        
-        return render_template('staff_dashboard.html', 
-                             title='Staff Dashboard',
-                             vehicles_entered_24h=vehicles_entered_24h,
-                             active_vehicles=active_vehicles,
-                             vehicles_exited_24h=vehicles_exited_24h,
-                             exit_vehicles=exit_vehicles)
-    except Exception as e:
-        print(f"❌ Staff dashboard error: {e}")
-        import traceback
-        traceback.print_exc()
-        flash('An error occurred while loading the dashboard. Please try again.', 'error')
+    if current_user.role != 'staff':
+        flash('Access denied. Staff privileges required.', 'error')
         return redirect(url_for('main.index'))
+    
+    # Get current time and 24 hours ago
+    now = datetime.utcnow()
+    twenty_four_hours_ago = now - timedelta(hours=24)
+    
+    # Get vehicles entered in the past 24 hours
+    vehicles_entered_24h = Entry.query.filter(
+        Entry.entry_time >= twenty_four_hours_ago
+    ).count()
+    
+    # Get active vehicles (entries without exit time)
+    active_vehicles = Entry.query.filter(
+        Entry.exit_time.is_(None)
+    ).count()
+    
+    # Get vehicles exited in the past 24 hours
+    vehicles_exited_24h = Entry.query.filter(
+        Entry.exit_time >= twenty_four_hours_ago
+    ).count()
+    
+    # Get exit vehicles (vehicles processed for exit today) - keeping for backward compatibility
+    today = date.today()
+    exit_vehicles = Entry.query.filter(
+        db.func.date(Entry.exit_time) == today
+    ).all()
+    
+    return render_template('staff_dashboard.html', 
+                         title='Staff Dashboard',
+                         vehicles_entered_24h=vehicles_entered_24h,
+                         active_vehicles=active_vehicles,
+                         vehicles_exited_24h=vehicles_exited_24h,
+                         exit_vehicles=exit_vehicles)
 
 @main.route('/staff/active-vehicles')
 @login_required
@@ -997,30 +946,6 @@ def staff_details(staff_id):
                          total_exits=total_exits,
                          efficiency_rate=efficiency_rate)
 
-@main.route('/admin/toggle-payment/<int:entry_id>', methods=['POST'])
-@login_required
-def toggle_payment(entry_id):
-    if current_user.role != 'admin':
-        flash('Access denied. Admin privileges required.', 'error')
-        return redirect(url_for('main.index'))
-    
-    entry = Entry.query.get_or_404(entry_id)
-    
-    # Toggle payment status
-    entry.paid = not entry.paid
-    
-    # If marking as unpaid, set amount to 0
-    if not entry.paid:
-        entry.amount = 0
-    
-    db.session.commit()
-    
-    status = "paid" if entry.paid else "unpaid"
-    flash(f'Vehicle {entry.ticket_number} marked as {status}.', 'success')
-    
-    # Redirect back to the referring page or admin dashboard
-    return redirect(request.referrer or url_for('main.admin_dashboard'))
-
 @main.route('/admin/clear-entries', methods=['GET', 'POST'])
 @login_required
 def clear_entries():
@@ -1076,63 +1001,4 @@ def clear_entries():
         
         return redirect(url_for('main.admin_dashboard'))
     
-    return render_template('clear_entries.html', title='Clear Entries')
-
-@main.route('/health')
-def health_check():
-    """Health check endpoint to test database and basic functionality"""
-    try:
-        # Test database connection
-        db.session.execute('SELECT 1')
-        db_status = "✅ Connected"
-    except Exception as e:
-        db_status = f"❌ Error: {e}"
-    
-    try:
-        # Test User table
-        user_count = User.query.count()
-        user_status = f"✅ {user_count} users"
-    except Exception as e:
-        user_status = f"❌ Error: {e}"
-    
-    try:
-        # Test Entry table
-        entry_count = Entry.query.count()
-        entry_status = f"✅ {entry_count} entries"
-    except Exception as e:
-        entry_status = f"❌ Error: {e}"
-    
-    health_data = {
-        "status": "healthy" if "✅" in db_status else "unhealthy",
-        "database": db_status,
-        "users": user_status,
-        "entries": entry_status,
-        "timestamp": datetime.utcnow().isoformat()
-    }
-    
-    return health_data 
-
-@main.route('/staff/dashboard-simple')
-@login_required
-def staff_dashboard_simple():
-    """Simple staff dashboard without complex queries for debugging"""
-    try:
-        if current_user.role != 'staff':
-            flash('Access denied. Staff privileges required.', 'error')
-            return redirect(url_for('main.index'))
-        
-        print(f"Simple staff dashboard accessed by user: {current_user.username}")
-        
-        # Just return basic info without complex queries
-        return render_template('staff_dashboard.html', 
-                             title='Staff Dashboard (Simple)',
-                             vehicles_entered_24h=0,
-                             active_vehicles=0,
-                             vehicles_exited_24h=0,
-                             exit_vehicles=[])
-    except Exception as e:
-        print(f"❌ Simple staff dashboard error: {e}")
-        import traceback
-        traceback.print_exc()
-        flash('An error occurred while loading the dashboard. Please try again.', 'error')
-        return redirect(url_for('main.index')) 
+    return render_template('clear_entries.html', title='Clear Entries') 

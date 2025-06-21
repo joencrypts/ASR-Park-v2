@@ -397,23 +397,6 @@
                                class="action-btn exit">
                                 🧾 Exit
                             </a>
-                            {% if current_user.role == 'admin' %}
-                                <form method="POST" action="{{ url_for('main.toggle_payment', entry_id=vehicle.id) }}" style="display: inline;">
-                                    {% if vehicle.paid %}
-                                        <button type="submit" class="payment-toggle-btn unpaid" 
-                                                style="background: #dc3545; color: white; border: none; border-radius: 15px; padding: 4px 8px; font-size: 11px; cursor: pointer; margin-left: 5px;"
-                                                title="Mark as Unpaid">
-                                            ❌ Unpaid
-                                        </button>
-                                    {% else %}
-                                        <button type="submit" class="payment-toggle-btn paid" 
-                                                style="background: #28a745; color: white; border: none; border-radius: 15px; padding: 4px 8px; font-size: 11px; cursor: pointer; margin-left: 5px;"
-                                                title="Mark as Paid">
-                                            ✅ Paid
-                                        </button>
-                                    {% endif %}
-                                </form>
-                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

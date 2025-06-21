@@ -27,8 +27,8 @@ A comprehensive parking lot management system built with Flask, featuring role-b
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/joencrypts/ASR-Final.git
-   cd ASR-Final
+   git clone https://github.com/joencrypts/ASR-Park-v1.git
+   cd ASR-Park-v1
    ```
 
 2. **Install dependencies**
@@ -92,7 +92,7 @@ Set these in your Render dashboard:
 ## Project Structure
 
 ```
-ASR-Final/
+ASR-Park-v1/
 ├── app/
 │   ├── __init__.py          # Flask app factory
 │   ├── models.py            # Database models
