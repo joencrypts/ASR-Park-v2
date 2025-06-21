@@ -5,7 +5,7 @@ from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, date, timedelta
 from sqlalchemy import func, and_
-from app.utils import get_current_device_time, format_ist_time_full, format_ist_time_medium, format_ist_time_short, format_ist_date, format_ist_date_short, format_ist_time_receipt, format_ist_receipt_id
+from app.utils import get_current_device_time, get_ist_time, format_ist_time_full, format_ist_time_medium, format_ist_time_short, format_ist_date, format_ist_date_short, format_ist_time_receipt, format_ist_receipt_id
 import qrcode
 import io
 import base64
@@ -188,7 +188,9 @@ def export_logs():
         # Calculate duration if exit time exists
         duration = None
         if entry.exit_time:
-            duration_td = entry.exit_time - entry.entry_time
+            entry_time_aware = get_ist_time(entry.entry_time)
+            exit_time_aware = get_ist_time(entry.exit_time)
+            duration_td = exit_time_aware - entry_time_aware
             duration = str(duration_td).split('.')[0]  # Remove microseconds
         
         data.append({
@@ -545,7 +547,10 @@ def vehicle_exit():
                 if entry_time_str:
                     try:
                         qr_entry_time = datetime.fromisoformat(entry_time_str)
-                        if abs((entry.entry_time - qr_entry_time).total_seconds()) > 60:  # Allow 1 minute difference
+                        # Make both times timezone-aware for comparison
+                        qr_entry_time_aware = get_ist_time(qr_entry_time)
+                        entry_time_aware = get_ist_time(entry.entry_time)
+                        if abs((entry_time_aware - qr_entry_time_aware).total_seconds()) > 60:  # Allow 1 minute difference
                             flash('QR code entry time does not match database record.', 'error')
                             return render_template('vehicle_exit.html', title='Vehicle Exit')
                     except ValueError:
@@ -601,11 +606,13 @@ def vehicle_exit():
         
         # Calculate bill
         exit_time = get_current_device_time()
-        duration = exit_time - entry.entry_time
+        # Ensure entry_time is timezone-aware for calculation
+        entry_time_aware = get_ist_time(entry.entry_time)
+        duration = exit_time - entry_time_aware
         hours = duration.total_seconds() / 3600
         
         # Calculate charges using daily rates
-        total_amount, total_days = calculate_daily_charges(entry.entry_time, exit_time, entry.vehicle_type)
+        total_amount, total_days = calculate_daily_charges(entry_time_aware, exit_time, entry.vehicle_type)
         
         # Update entry with exit time and amount
         entry.exit_time = exit_time
@@ -646,11 +653,13 @@ def select_vehicle(entry_id):
     
     # Calculate bill
     exit_time = get_current_device_time()
-    duration = exit_time - entry.entry_time
+    # Ensure entry_time is timezone-aware for calculation
+    entry_time_aware = get_ist_time(entry.entry_time)
+    duration = exit_time - entry_time_aware
     hours = duration.total_seconds() / 3600
     
     # Calculate charges using daily rates
-    total_amount, total_days = calculate_daily_charges(entry.entry_time, exit_time, entry.vehicle_type)
+    total_amount, total_days = calculate_daily_charges(entry_time_aware, exit_time, entry.vehicle_type)
     
     # Update entry with exit time and amount
     entry.exit_time = exit_time
@@ -775,10 +784,17 @@ def exit_receipt(entry_id):
     # Calculate charges using daily rates
     total_amount, total_days = calculate_daily_charges(entry.entry_time, entry.exit_time, entry.vehicle_type)
     
+    # Calculate duration with timezone-aware datetimes
+    entry_time_aware = get_ist_time(entry.entry_time)
+    exit_time_aware = get_ist_time(entry.exit_time)
+    duration = exit_time_aware - entry_time_aware
+    hours = duration.total_seconds() / 3600
+    
     return render_template('exit_receipt.html', 
                          entry=entry,
                          total_amount=total_amount,
-                         days=total_days)
+                         days=total_days,
+                         hours=hours)
 
 @main.route('/admin/users')
 @login_required
