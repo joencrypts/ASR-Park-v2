@@ -563,6 +563,10 @@ def vehicle_exit():
                 if not entry:
                     flash('Invalid QR code format or no active parking found.', 'error')
                     return render_template('vehicle_exit.html', title='Vehicle Exit')
+        elif search_type == 'phone':
+            # Search by phone number (normalize the search value)
+            normalized_phone = ''.join(filter(str.isdigit, search_value))
+            entry = Entry.query.filter_by(phone=normalized_phone, paid=False).first()
         else:
             # Search by vehicle number/token (normalize the search value)
             normalized_search = search_value.replace(' ', '').upper()
