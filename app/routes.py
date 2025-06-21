@@ -5,7 +5,7 @@ from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, date, timedelta
 from sqlalchemy import func, and_
-from app.utils import get_current_device_time, get_ist_time, format_ist_time_full, format_ist_time_medium, format_ist_time_short, format_ist_date, format_ist_date_short, format_ist_time_receipt, format_ist_receipt_id, get_current_ist
+from app.utils import get_current_device_time, get_ist_time, format_ist_time_full, format_ist_time_medium, format_ist_time_short, format_ist_date, format_ist_date_short, format_ist_time_receipt, format_ist_receipt_id, get_current_ist, get_ist_timezone
 import qrcode
 import io
 import base64
@@ -618,12 +618,28 @@ def vehicle_exit():
         
         # Calculate bill
         exit_time = get_current_ist()  # Use IST directly
-        # Both entry_time and exit_time are now in IST
-        duration = exit_time - entry.entry_time
+        
+        # Ensure both times are timezone-aware before calculation
+        # If entry_time is naive, assume it's in IST and localize it
+        if entry.entry_time.tzinfo is None:
+            ist_tz = get_ist_timezone()
+            entry_time_aware = ist_tz.localize(entry.entry_time)
+        else:
+            entry_time_aware = entry.entry_time
+            
+        # If exit_time is naive, assume it's in IST and localize it
+        if entry.exit_time.tzinfo is None:
+            ist_tz = get_ist_timezone()
+            exit_time_aware = ist_tz.localize(entry.exit_time)
+        else:
+            exit_time_aware = entry.exit_time
+        
+        # Calculate duration - both times are now timezone-aware
+        duration = exit_time_aware - entry_time_aware
         hours = duration.total_seconds() / 3600
         
         # Calculate charges using daily rates
-        total_amount, total_days = calculate_daily_charges(entry.entry_time, exit_time, entry.vehicle_type)
+        total_amount, total_days = calculate_daily_charges(entry_time_aware, exit_time, entry.vehicle_type)
         
         # Update entry with exit time and amount
         entry.exit_time = exit_time
@@ -664,12 +680,28 @@ def select_vehicle(entry_id):
     
     # Calculate bill
     exit_time = get_current_ist()  # Use IST directly
-    # Both entry_time and exit_time are now in IST
-    duration = exit_time - entry.entry_time
+    
+    # Ensure both times are timezone-aware before calculation
+    # If entry_time is naive, assume it's in IST and localize it
+    if entry.entry_time.tzinfo is None:
+        ist_tz = get_ist_timezone()
+        entry_time_aware = ist_tz.localize(entry.entry_time)
+    else:
+        entry_time_aware = entry.entry_time
+        
+    # If exit_time is naive, assume it's in IST and localize it
+    if entry.exit_time.tzinfo is None:
+        ist_tz = get_ist_timezone()
+        exit_time_aware = ist_tz.localize(entry.exit_time)
+    else:
+        exit_time_aware = entry.exit_time
+    
+    # Calculate duration - both times are now timezone-aware
+    duration = exit_time_aware - entry_time_aware
     hours = duration.total_seconds() / 3600
     
     # Calculate charges using daily rates
-    total_amount, total_days = calculate_daily_charges(entry.entry_time, exit_time, entry.vehicle_type)
+    total_amount, total_days = calculate_daily_charges(entry_time_aware, exit_time, entry.vehicle_type)
     
     # Update entry with exit time and amount
     entry.exit_time = exit_time
@@ -794,8 +826,23 @@ def exit_receipt(entry_id):
     # Calculate charges using daily rates
     total_amount, total_days = calculate_daily_charges(entry.entry_time, entry.exit_time, entry.vehicle_type)
     
-    # Calculate duration - both times are already in IST
-    duration = entry.exit_time - entry.entry_time
+    # Ensure both times are timezone-aware before calculation
+    # If entry_time is naive, assume it's in IST and localize it
+    if entry.entry_time.tzinfo is None:
+        ist_tz = get_ist_timezone()
+        entry_time_aware = ist_tz.localize(entry.entry_time)
+    else:
+        entry_time_aware = entry.entry_time
+        
+    # If exit_time is naive, assume it's in IST and localize it
+    if entry.exit_time.tzinfo is None:
+        ist_tz = get_ist_timezone()
+        exit_time_aware = ist_tz.localize(entry.exit_time)
+    else:
+        exit_time_aware = entry.exit_time
+    
+    # Calculate duration - both times are now timezone-aware
+    duration = exit_time_aware - entry_time_aware
     hours = duration.total_seconds() / 3600
     
     return render_template('exit_receipt.html', 
