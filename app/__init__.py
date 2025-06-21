@@ -18,10 +18,16 @@ def create_app():
     # Database configuration for Render
     if os.environ.get('DATABASE_URL'):
         # Use PostgreSQL on Render
-        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+        database_url = os.environ.get('DATABASE_URL')
+        # Fix for Render's DATABASE_URL format (replace postgres:// with postgresql://)
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+        print(f"Using PostgreSQL database: {database_url[:50]}...")
     else:
         # Use SQLite for local development
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+        print("Using SQLite database for local development")
     
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -44,8 +50,10 @@ def create_app():
     # Create database tables if they don't exist
     with app.app_context():
         try:
+            print("Creating database tables...")
             db.create_all()
+            print("✅ Database tables created successfully!")
         except Exception as e:
-            print(f"Database creation error: {e}")
+            print(f"❌ Database creation error: {e}")
 
     return app 

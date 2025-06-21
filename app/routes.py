@@ -321,30 +321,69 @@ def staff_dashboard():
             flash('Access denied. Staff privileges required.', 'error')
             return redirect(url_for('main.index'))
         
+        print(f"Staff dashboard accessed by user: {current_user.username}")
+        
+        # Test database connection first
+        try:
+            db.session.execute('SELECT 1')
+            print("✅ Database connection successful")
+        except Exception as db_error:
+            print(f"❌ Database connection failed: {db_error}")
+            flash('Database connection error. Please try again.', 'error')
+            return redirect(url_for('main.index'))
+        
         # Get current time and 24 hours ago
-        now = datetime.utcnow()
-        twenty_four_hours_ago = now - timedelta(hours=24)
+        try:
+            now = datetime.utcnow()
+            twenty_four_hours_ago = now - timedelta(hours=24)
+            print(f"✅ Time calculation successful: {now} to {twenty_four_hours_ago}")
+        except Exception as time_error:
+            print(f"❌ Time calculation error: {time_error}")
+            flash('Time calculation error. Please try again.', 'error')
+            return redirect(url_for('main.index'))
         
         # Get vehicles entered in the past 24 hours
-        vehicles_entered_24h = Entry.query.filter(
-            Entry.entry_time >= twenty_four_hours_ago
-        ).count()
+        try:
+            vehicles_entered_24h = Entry.query.filter(
+                Entry.entry_time >= twenty_four_hours_ago
+            ).count()
+            print(f"✅ Vehicles entered 24h query successful: {vehicles_entered_24h}")
+        except Exception as query_error:
+            print(f"❌ Vehicles entered query error: {query_error}")
+            vehicles_entered_24h = 0
         
         # Get active vehicles (entries without exit time)
-        active_vehicles = Entry.query.filter(
-            Entry.exit_time.is_(None)
-        ).count()
+        try:
+            active_vehicles = Entry.query.filter(
+                Entry.exit_time.is_(None)
+            ).count()
+            print(f"✅ Active vehicles query successful: {active_vehicles}")
+        except Exception as query_error:
+            print(f"❌ Active vehicles query error: {query_error}")
+            active_vehicles = 0
         
         # Get vehicles exited in the past 24 hours
-        vehicles_exited_24h = Entry.query.filter(
-            Entry.exit_time >= twenty_four_hours_ago
-        ).count()
+        try:
+            vehicles_exited_24h = Entry.query.filter(
+                Entry.exit_time >= twenty_four_hours_ago
+            ).count()
+            print(f"✅ Vehicles exited 24h query successful: {vehicles_exited_24h}")
+        except Exception as query_error:
+            print(f"❌ Vehicles exited query error: {query_error}")
+            vehicles_exited_24h = 0
         
         # Get exit vehicles (vehicles processed for exit today) - keeping for backward compatibility
-        today = date.today()
-        exit_vehicles = Entry.query.filter(
-            db.func.date(Entry.exit_time) == today
-        ).all()
+        try:
+            today = date.today()
+            exit_vehicles = Entry.query.filter(
+                db.func.date(Entry.exit_time) == today
+            ).all()
+            print(f"✅ Exit vehicles query successful: {len(exit_vehicles)}")
+        except Exception as query_error:
+            print(f"❌ Exit vehicles query error: {query_error}")
+            exit_vehicles = []
+        
+        print("✅ All queries completed successfully")
         
         return render_template('staff_dashboard.html', 
                              title='Staff Dashboard',
@@ -353,7 +392,9 @@ def staff_dashboard():
                              vehicles_exited_24h=vehicles_exited_24h,
                              exit_vehicles=exit_vehicles)
     except Exception as e:
-        print(f"Staff dashboard error: {e}")
+        print(f"❌ Staff dashboard error: {e}")
+        import traceback
+        traceback.print_exc()
         flash('An error occurred while loading the dashboard. Please try again.', 'error')
         return redirect(url_for('main.index'))
 
@@ -1035,4 +1076,63 @@ def clear_entries():
         
         return redirect(url_for('main.admin_dashboard'))
     
-    return render_template('clear_entries.html', title='Clear Entries') 
+    return render_template('clear_entries.html', title='Clear Entries')
+
+@main.route('/health')
+def health_check():
+    """Health check endpoint to test database and basic functionality"""
+    try:
+        # Test database connection
+        db.session.execute('SELECT 1')
+        db_status = "✅ Connected"
+    except Exception as e:
+        db_status = f"❌ Error: {e}"
+    
+    try:
+        # Test User table
+        user_count = User.query.count()
+        user_status = f"✅ {user_count} users"
+    except Exception as e:
+        user_status = f"❌ Error: {e}"
+    
+    try:
+        # Test Entry table
+        entry_count = Entry.query.count()
+        entry_status = f"✅ {entry_count} entries"
+    except Exception as e:
+        entry_status = f"❌ Error: {e}"
+    
+    health_data = {
+        "status": "healthy" if "✅" in db_status else "unhealthy",
+        "database": db_status,
+        "users": user_status,
+        "entries": entry_status,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+    
+    return health_data 
+
+@main.route('/staff/dashboard-simple')
+@login_required
+def staff_dashboard_simple():
+    """Simple staff dashboard without complex queries for debugging"""
+    try:
+        if current_user.role != 'staff':
+            flash('Access denied. Staff privileges required.', 'error')
+            return redirect(url_for('main.index'))
+        
+        print(f"Simple staff dashboard accessed by user: {current_user.username}")
+        
+        # Just return basic info without complex queries
+        return render_template('staff_dashboard.html', 
+                             title='Staff Dashboard (Simple)',
+                             vehicles_entered_24h=0,
+                             active_vehicles=0,
+                             vehicles_exited_24h=0,
+                             exit_vehicles=[])
+    except Exception as e:
+        print(f"❌ Simple staff dashboard error: {e}")
+        import traceback
+        traceback.print_exc()
+        flash('An error occurred while loading the dashboard. Please try again.', 'error')
+        return redirect(url_for('main.index')) 
