@@ -1120,6 +1120,7 @@ def calculate_daily_charges(entry_time, exit_time, vehicle_type):
     """
     Calculate charges based on daily rates (midnight to midnight)
     """
+    from app.utils import get_ist_time
     # Updated base charges per day
     daily_charges = {
         'Bike': 10,
@@ -1134,30 +1135,21 @@ def calculate_daily_charges(entry_time, exit_time, vehicle_type):
     
     base_amount = daily_charges.get(vehicle_type, 50)
     
+    # Always convert both times to IST
+    entry_time_ist = get_ist_time(entry_time)
+    exit_time_ist = get_ist_time(exit_time)
+    
     # Convert to string format first to avoid timezone issues
     # Format: YYYY-MM-DD HH:MM:SS
-    entry_str = entry_time.strftime('%Y-%m-%d %H:%M:%S')
-    exit_str = exit_time.strftime('%Y-%m-%d %H:%M:%S')
+    entry_str = entry_time_ist.strftime('%Y-%m-%d %H:%M:%S')
+    exit_str = exit_time_ist.strftime('%Y-%m-%d %H:%M:%S')
     
     # Extract just the date part (YYYY-MM-DD)
     entry_date_str = entry_str.split(' ')[0]
     exit_date_str = exit_str.split(' ')[0]
     
-    # Debug information for troubleshooting
-    print(f"=== DEBUG: calculate_daily_charges ===")
-    print(f"Entry time: {entry_time}")
-    print(f"Exit time: {exit_time}")
-    print(f"Entry string: {entry_str}")
-    print(f"Exit string: {exit_str}")
-    print(f"Entry date string: {entry_date_str}")
-    print(f"Exit date string: {exit_date_str}")
-    print(f"Vehicle type: {vehicle_type}")
-    print(f"Base amount: {base_amount}")
-    print(f"Date comparison: '{entry_date_str}' == '{exit_date_str}' = {entry_date_str == exit_date_str}")
-    
     # Compare dates as strings
     if entry_date_str == exit_date_str:
-        print(f"Result: Same day parking - {base_amount}, 1 day")
         return base_amount, 1
     else:
         # Calculate days difference by parsing dates
@@ -1167,31 +1159,4 @@ def calculate_daily_charges(entry_time, exit_time, vehicle_type):
         days_diff = (exit_date_obj - entry_date_obj).days
         total_days = days_diff + 1
         total_amount = base_amount * total_days
-        print(f"Result: Multi-day parking - {total_amount}, {total_days} days")
         return total_amount, total_days 
-
-@main.route('/test-calculation')
-def test_calculation():
-    """Test route to verify calculate_daily_charges function"""
-    from datetime import datetime
-    from app.utils import get_ist_time
-    
-    # Test with same-day parking
-    entry_time = datetime(2025, 6, 21, 19, 17, 39)
-    exit_time = datetime(2025, 6, 21, 19, 17, 53)
-    
-    # Convert to timezone-aware
-    entry_time_aware = get_ist_time(entry_time)
-    exit_time_aware = get_ist_time(exit_time)
-    
-    # Test the function
-    amount, days = calculate_daily_charges(entry_time_aware, exit_time_aware, 'Cycle')
-    
-    return f"""
-    <h1>Test Calculation Results</h1>
-    <p>Entry Time: {entry_time_aware}</p>
-    <p>Exit Time: {exit_time_aware}</p>
-    <p>Vehicle Type: Cycle</p>
-    <p>Result: Amount = ₹{amount}, Days = {days}</p>
-    <p>Expected: Amount = ₹5, Days = 1</p>
-    """ 
