@@ -1134,29 +1134,37 @@ def calculate_daily_charges(entry_time, exit_time, vehicle_type):
     
     base_amount = daily_charges.get(vehicle_type, 50)
     
-    # Ensure both times are timezone-aware and in IST
-    from app.utils import get_ist_time
-    entry_time_aware = get_ist_time(entry_time)
-    exit_time_aware = get_ist_time(exit_time)
+    # Convert to string format first to avoid timezone issues
+    # Format: YYYY-MM-DD HH:MM:SS
+    entry_str = entry_time.strftime('%Y-%m-%d %H:%M:%S')
+    exit_str = exit_time.strftime('%Y-%m-%d %H:%M:%S')
     
-    # Get entry and exit dates (midnight to midnight) in IST
-    entry_date = entry_time_aware.date()
-    exit_date = exit_time_aware.date()
+    # Extract just the date part (YYYY-MM-DD)
+    entry_date_str = entry_str.split(' ')[0]
+    exit_date_str = exit_str.split(' ')[0]
     
-    # Calculate number of days
-    days_diff = (exit_date - entry_date).days
+    # Debug information for troubleshooting
+    print(f"=== DEBUG: calculate_daily_charges ===")
+    print(f"Entry time: {entry_time}")
+    print(f"Exit time: {exit_time}")
+    print(f"Entry string: {entry_str}")
+    print(f"Exit string: {exit_str}")
+    print(f"Entry date string: {entry_date_str}")
+    print(f"Exit date string: {exit_date_str}")
+    print(f"Vehicle type: {vehicle_type}")
+    print(f"Base amount: {base_amount}")
     
-    # Debug information (you can remove this after testing)
-    print(f"DEBUG: Entry time: {entry_time_aware}, Entry date: {entry_date}")
-    print(f"DEBUG: Exit time: {exit_time_aware}, Exit date: {exit_date}")
-    print(f"DEBUG: Days difference: {days_diff}")
-    
-    # If same day, charge for 1 day
-    if days_diff == 0:
+    # Compare dates as strings
+    if entry_date_str == exit_date_str:
+        print(f"Result: Same day parking - {base_amount}, 1 day")
         return base_amount, 1
-    
-    # If different days, charge for each day
-    total_days = days_diff + 1
-    total_amount = base_amount * total_days
-    
-    return total_amount, total_days 
+    else:
+        # Calculate days difference by parsing dates
+        from datetime import datetime
+        entry_date_obj = datetime.strptime(entry_date_str, '%Y-%m-%d').date()
+        exit_date_obj = datetime.strptime(exit_date_str, '%Y-%m-%d').date()
+        days_diff = (exit_date_obj - entry_date_obj).days
+        total_days = days_diff + 1
+        total_amount = base_amount * total_days
+        print(f"Result: Multi-day parking - {total_amount}, {total_days} days")
+        return total_amount, total_days 
