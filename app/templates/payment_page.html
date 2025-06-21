@@ -668,22 +668,26 @@
         <div class="billing-section">
             <h3>Billing Details</h3>
             <div class="bill-row">
-                <span class="bill-label">Base Charge ({{ entry.vehicle_type }} - 24h):</span>
-                <span class="bill-value">₹{{ base_amount }}</span>
+                <span class="bill-label">Daily Rate ({{ entry.vehicle_type }}):</span>
+                <span class="bill-value">₹{{ "%.0f"|format(total_amount / days) }}</span>
             </div>
-            {% set periods = (hours // 24) + 1 %}
-            {% if periods > 1 %}
+            {% if days > 1 %}
             <div class="bill-row">
-                <span class="bill-label">Additional 24h Periods:</span>
-                <span class="bill-value">{{ periods - 1 }} × ₹{{ base_amount }}</span>
+                <span class="bill-label">Number of Days:</span>
+                <span class="bill-value">{{ days }} days</span>
             </div>
             <div class="bill-row">
-                <span class="bill-label">Additional Amount:</span>
-                <span class="bill-value">₹{{ "%.0f"|format(base_amount * (periods - 1)) }}</span>
+                <span class="bill-label">Calculation:</span>
+                <span class="bill-value">{{ days }} × ₹{{ "%.0f"|format(total_amount / days) }}</span>
             </div>
             <div class="bill-row">
                 <span class="bill-label">Reason:</span>
-                <span class="bill-value">Parked for {{ "%.1f"|format(hours) }} hours ({{ periods }} periods)</span>
+                <span class="bill-value">Parked across {{ days }} day(s) ({{ "%.1f"|format(hours) }} hours)</span>
+            </div>
+            {% else %}
+            <div class="bill-row">
+                <span class="bill-label">Duration:</span>
+                <span class="bill-value">{{ "%.1f"|format(hours) }} hours (same day)</span>
             </div>
             {% endif %}
             <div class="bill-row total-row">

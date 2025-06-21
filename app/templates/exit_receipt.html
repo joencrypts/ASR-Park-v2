@@ -243,17 +243,22 @@
         
         <div class="billing">
             <div class="row">
-                <span class="label">Base Charge (24h):</span>
-                <span>₹{{ "%.0f"|format(base_amount) }}</span>
+                <span class="label">Daily Rate:</span>
+                <span>₹{{ "%.0f"|format(total_amount / days) }}</span>
             </div>
-            {% if periods > 1 %}
+            {% if days > 1 %}
             <div class="row">
-                <span class="label">Additional Periods:</span>
-                <span>{{ periods - 1 }} × ₹{{ "%.0f"|format(base_amount) }}</span>
+                <span class="label">Number of Days:</span>
+                <span>{{ days }} days</span>
             </div>
             <div class="row">
-                <span class="label">Additional Amount:</span>
-                <span>₹{{ "%.0f"|format(base_amount * (periods - 1)) }}</span>
+                <span class="label">Calculation:</span>
+                <span>{{ days }} × ₹{{ "%.0f"|format(total_amount / days) }}</span>
+            </div>
+            {% else %}
+            <div class="row">
+                <span class="label">Duration:</span>
+                <span>Same day parking</span>
             </div>
             {% endif %}
         </div>
@@ -281,3 +286,4 @@
     </div>
 </body>
 </html> 
+

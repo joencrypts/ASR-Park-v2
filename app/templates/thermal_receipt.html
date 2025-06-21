@@ -31,16 +31,16 @@
         
         .header {
             margin-bottom: 0.2in;
-            border-bottom: 1px dashed #000;
+            border-bottom: 0.5px dashed #000;
             padding-bottom: 0.1in;
         }
         
         .logo-section {
-            margin-bottom: 0.1in;
+            margin-bottom: 0.05in;
         }
         
         .logo {
-            width: 1.2in;
+            width: 0.5in;
             height: auto;
         }
         
@@ -66,8 +66,8 @@
         .ticket-section {
             margin: 0.15in 0;
             padding: 0.1in 0;
-            border-top: 1px dashed #000;
-            border-bottom: 1px dashed #000;
+            border-top: 0.2px dashed #000;
+            border-bottom: 0.2px dashed #000;
         }
         
         .ticket-label {
@@ -234,32 +234,10 @@
                 <span class="detail-value">{{ entry.phone }}</span>
             </div>
             <div class="detail-row">
-                <span class="detail-label">Entry Time:</span>
-                <span class="detail-value">{{ entry.entry_time | ist_receipt }}</span>
+                <span class="detail-label">Entry:</span>
+                <span class="detail-value">{{ entry.entry_time | ist_date }} {{ entry.entry_time | ist_receipt }}</span>
             </div>
-            <div class="detail-row">
-                <span class="detail-label">Date:</span>
-                <span class="detail-value">{{ entry.entry_time | ist_date }}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Device:</span>
-                <span class="detail-value">{{ entry.device }}</span>
-            </div>
-        </div>
-        
-        <div class="spacer"></div>
-        
-        <div class="details-section">
-            <div class="detail-row">
-                <span class="detail-label">Status:</span>
-                <span class="detail-value">ACTIVE</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Payment:</span>
-                <span class="detail-value">PENDING</span>
-            </div>
-        </div>
-        
+       
         <div class="footer">
             <div class="footer-text">
                 Please keep this ticket safe.<br>
@@ -268,8 +246,7 @@
             <div class="spacer"></div>
             <div class="footer-text">
                 For assistance, contact:<br>
-                ASR Parking Lot<br>
-                Phone: +917397708708
+                Phone: +919487108708
             </div>
             
             <div class="thank-you">Thank You!</div>

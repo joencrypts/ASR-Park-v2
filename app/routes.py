@@ -604,24 +604,8 @@ def vehicle_exit():
         duration = exit_time - entry.entry_time
         hours = duration.total_seconds() / 3600
         
-        # Updated base charges
-        base_charges = {
-            'Bike': 10,
-            'Car': 50,
-            'Auto': 30,
-            'Cycle': 5,
-            'Van': 80,
-            'Bus': 80,
-            'Lorry': 100
-        }
-        
-        base_amount = base_charges.get(entry.vehicle_type, 30)
-        
-        # Calculate total amount based on 24-hour periods
-        # For every complete 24 hours, add the base charge
-        # Example: 36 hours = 2 complete 24-hour periods = 2 * base_amount
-        complete_24_hour_periods = int(hours // 24) + 1  # Add 1 for the first 24 hours
-        total_amount = base_amount * complete_24_hour_periods
+        # Calculate charges using daily rates
+        total_amount, total_days = calculate_daily_charges(entry.entry_time, exit_time, entry.vehicle_type)
         
         # Update entry with exit time and amount
         entry.exit_time = exit_time
@@ -634,7 +618,7 @@ def vehicle_exit():
                              title='Payment',
                              entry=entry,
                              hours=hours,
-                             base_amount=base_amount,
+                             days=total_days,
                              total_amount=total_amount)
     
     return render_template('vehicle_exit.html', title='Vehicle Exit')
@@ -665,22 +649,8 @@ def select_vehicle(entry_id):
     duration = exit_time - entry.entry_time
     hours = duration.total_seconds() / 3600
     
-    # Updated base charges
-    base_charges = {
-        'Bike': 10,
-        'Car': 50,
-        'Auto': 30,
-        'Cycle': 5,
-        'Van': 80,
-        'Bus': 80,
-        'Lorry': 100
-    }
-    
-    base_amount = base_charges.get(entry.vehicle_type, 30)
-    
-    # Calculate total amount based on 24-hour periods
-    complete_24_hour_periods = int(hours // 24) + 1  # Add 1 for the first 24 hours
-    total_amount = base_amount * complete_24_hour_periods
+    # Calculate charges using daily rates
+    total_amount, total_days = calculate_daily_charges(entry.entry_time, exit_time, entry.vehicle_type)
     
     # Update entry with exit time and amount
     entry.exit_time = exit_time
@@ -693,7 +663,7 @@ def select_vehicle(entry_id):
                          title='Payment',
                          entry=entry,
                          hours=hours,
-                         base_amount=base_amount,
+                         days=total_days,
                          total_amount=total_amount)
 
 @main.route('/staff/process-payment/<int:entry_id>', methods=['POST'])
@@ -802,31 +772,13 @@ def exit_receipt(entry_id):
         flash('Vehicle has not been processed for exit yet.', 'error')
         return redirect(url_for('main.vehicle_exit'))
     
-    # Calculate base amount for receipt
-    base_charges = {
-        'Bike': 10,
-        'Car': 50,
-        'Auto': 30,
-        'Cycle': 5,
-        'Van': 80,
-        'Bus': 80,
-        'Lorry': 100
-    }
-    
-    base_amount = base_charges.get(entry.vehicle_type, 30)
-    
-    # Calculate total amount for receipt display
-    duration = entry.exit_time - entry.entry_time
-    hours = duration.total_seconds() / 3600
-    complete_24_hour_periods = int(hours // 24) + 1
-    total_amount = base_amount * complete_24_hour_periods
+    # Calculate charges using daily rates
+    total_amount, total_days = calculate_daily_charges(entry.entry_time, entry.exit_time, entry.vehicle_type)
     
     return render_template('exit_receipt.html', 
                          entry=entry,
-                         base_amount=base_amount,
                          total_amount=total_amount,
-                         hours=hours,
-                         periods=complete_24_hour_periods)
+                         days=total_days)
 
 @main.route('/admin/users')
 @login_required
@@ -1135,3 +1087,38 @@ def generate_cycle_token():
         next_number = 1
     
     return f"CYC{next_number:03d}" 
+
+def calculate_daily_charges(entry_time, exit_time, vehicle_type):
+    """
+    Calculate charges based on daily rates (midnight to midnight)
+    """
+    # Updated base charges per day
+    daily_charges = {
+        'Bike': 10,
+        'Car': 50,
+        'Auto': 25,
+        'Cycle': 5,
+        'Van': 100,
+        'Tembo': 100,
+        'Lorry': 150,
+        'Bus': 150
+    }
+    
+    base_amount = daily_charges.get(vehicle_type, 50)
+    
+    # Get entry and exit dates (midnight to midnight)
+    entry_date = entry_time.date()
+    exit_date = exit_time.date()
+    
+    # Calculate number of days
+    days_diff = (exit_date - entry_date).days
+    
+    # If same day, charge for 1 day
+    if days_diff == 0:
+        return base_amount, 1
+    
+    # If different days, charge for each day
+    total_days = days_diff + 1
+    total_amount = base_amount * total_days
+    
+    return total_amount, total_days 
