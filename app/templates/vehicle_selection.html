@@ -381,32 +381,32 @@
         </div>
         
         <div class="vehicle-list">
-            {% for vehicle in vehicles %}
-            <div class="vehicle-card" onclick="selectVehicle({{ vehicle.id }})">
+            {% for item in vehicles_with_duration %}
+            <div class="vehicle-card" onclick="selectVehicle({{ item.vehicle.id }})">
                 <div class="vehicle-header">
-                    <span class="vehicle-type">{{ vehicle.vehicle_type }}</span>
-                    <span class="ticket-number">{{ vehicle.ticket_number }}</span>
+                    <span class="vehicle-type">{{ item.vehicle.vehicle_type }}</span>
+                    <span class="ticket-number">{{ item.vehicle.ticket_number }}</span>
                 </div>
                 
                 <div class="vehicle-details">
                     <div class="detail-item">
-                        <span class="detail-label">{% if vehicle.vehicle_type == 'Cycle' %}Cycle Token:{% else %}Vehicle Number:{% endif %}</span>
-                        <span class="detail-value">{{ vehicle.vehicle_number }}</span>
+                        <span class="detail-label">{% if item.vehicle.vehicle_type == 'Cycle' %}Cycle Token:{% else %}Vehicle Number:{% endif %}</span>
+                        <span class="detail-value">{{ item.vehicle.vehicle_number }}</span>
                     </div>
                     
                     <div class="detail-item">
                         <span class="detail-label">Entry Time:</span>
-                        <span class="detail-value">{{ vehicle.entry_time | ist_full }}</span>
+                        <span class="detail-value">{{ item.vehicle.entry_time | ist_full }}</span>
                     </div>
                     
                     <div class="detail-item">
                         <span class="detail-label">Duration:</span>
-                        <span class="detail-value">{{ ((get_current_device_time() - vehicle.entry_time).total_seconds() / 3600) | round(1) }} hours</span>
+                        <span class="detail-value">{{ item.hours | round(1) }} hours</span>
                     </div>
                     
                     <div class="detail-item">
                         <span class="detail-label">Device:</span>
-                        <span class="detail-value">{{ vehicle.device }}</span>
+                        <span class="detail-value">{{ item.vehicle.device }}</span>
                     </div>
                 </div>
             </div>

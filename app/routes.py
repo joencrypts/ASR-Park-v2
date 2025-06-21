@@ -584,9 +584,21 @@ def vehicle_exit():
                 entry = vehicles_with_phone[0]
             else:
                 # Multiple vehicles found, show selection page
+                # Calculate duration for each vehicle
+                current_time = get_current_device_time()
+                vehicles_with_duration = []
+                for vehicle in vehicles_with_phone:
+                    entry_time_aware = get_ist_time(vehicle.entry_time)
+                    duration = current_time - entry_time_aware
+                    hours = duration.total_seconds() / 3600
+                    vehicles_with_duration.append({
+                        'vehicle': vehicle,
+                        'hours': hours
+                    })
+                
                 return render_template('vehicle_selection.html', 
                                      title='Select Vehicle',
-                                     vehicles=vehicles_with_phone,
+                                     vehicles_with_duration=vehicles_with_duration,
                                      phone_number=normalized_phone)
         else:
             # Search by vehicle number/token (normalize the search value)
