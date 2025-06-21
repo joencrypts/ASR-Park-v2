@@ -406,11 +406,11 @@
             </div>
             <div class="detail-row">
                 <span class="detail-label">Entry Time:</span>
-                <span class="detail-value">{{ entry.entry_time.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                <span class="detail-value">{{ entry.entry_time | ist_full }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Exit Time:</span>
-                <span class="detail-value">{{ entry.exit_time.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                <span class="detail-value">{{ entry.exit_time | ist_full }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Payment Status:</span>
