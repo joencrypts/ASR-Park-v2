@@ -45,7 +45,11 @@ def create_app():
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))
+        try:
+            return User.query.get(int(user_id))
+        except Exception as e:
+            print(f"Error loading user {user_id}: {e}")
+            return None
 
     # Create database tables if they don't exist
     with app.app_context():
@@ -55,5 +59,6 @@ def create_app():
             print("✅ Database tables created successfully!")
         except Exception as e:
             print(f"❌ Database creation error: {e}")
+            print("⚠️  App will continue without database tables. They will be created on first access.")
 
     return app 
