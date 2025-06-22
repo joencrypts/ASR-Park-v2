@@ -457,7 +457,8 @@
     <script>
         function selectVehicle(vehicleId) {
             if (confirm('Are you sure you want to process exit for this vehicle?')) {
-                window.location.href = `/staff/select-vehicle/${vehicleId}`;
+                const currentTime = window.currentISTTime || new Date().toISOString();
+                window.location.href = `/staff/select-vehicle/${vehicleId}?ist_time=${encodeURIComponent(currentTime)}`;
             }
         }
 

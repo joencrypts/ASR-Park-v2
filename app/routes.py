@@ -638,7 +638,7 @@ def vehicle_exit():
             return render_template('vehicle_exit.html', title='Vehicle Exit')
         
         # Calculate bill
-        # Get IST time from frontend or use current IST time
+        # Get IST time from frontend form or use current IST time
         ist_time_str = request.form.get('ist_time')
         exit_time = parse_ist_time_from_frontend(ist_time_str)
         
@@ -695,8 +695,8 @@ def select_vehicle(entry_id):
         return redirect(url_for('main.vehicle_exit'))
     
     # Calculate bill
-    # Get IST time from frontend or use current IST time
-    ist_time_str = request.form.get('ist_time')
+    # Get IST time from URL parameter or use current IST time
+    ist_time_str = request.args.get('ist_time')
     exit_time = parse_ist_time_from_frontend(ist_time_str)
     
     # Ensure entry_time is timezone-aware before calculation
