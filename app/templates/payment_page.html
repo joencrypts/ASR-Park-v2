@@ -685,10 +685,6 @@
                 <span class="bill-value">Parked across {{ days }} day(s) ({{ "%.1f"|format(hours) }} hours)</span>
             </div>
             {% else %}
-            <div class="bill-row">
-                <span class="bill-label">Duration:</span>
-                <span class="bill-value">{{ "%.1f"|format(hours) }} hours (same day)</span>
-            </div>
             {% endif %}
             <div class="bill-row total-row">
                 <span class="bill-label">Total Amount:</span>
