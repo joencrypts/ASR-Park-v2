@@ -5,7 +5,7 @@ from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, date, timedelta
 from sqlalchemy import func, and_
-from app.utils import get_current_device_time, get_ist_time, format_ist_time_full, format_ist_time_medium, format_ist_time_short, format_ist_date, format_ist_date_short, format_ist_time_receipt, format_ist_receipt_id, get_current_ist, get_ist_timezone
+from app.utils import get_current_ist, get_current_ist_date, get_ist_time, format_ist_time_full, format_ist_time_medium, format_ist_time_short, format_ist_date, format_ist_date_short, format_ist_time_receipt, format_ist_receipt_id, get_current_ist, get_ist_timezone
 import qrcode
 import io
 import base64
@@ -251,7 +251,7 @@ def export_logs():
     output.seek(0)
     
     # Generate filename with timestamp and filters
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    timestamp = get_current_ist().strftime('%Y%m%d_%H%M%S')
     filename = f"parking_logs_{timestamp}.xlsx"
     
     # Add filter info to filename if filters are applied
@@ -287,7 +287,7 @@ def prepare_chart_data(entries):
     # Revenue over time line chart (last 7 days)
     revenue_data = []
     for i in range(7):
-        date_obj = date.today() - timedelta(days=i)
+        date_obj = get_current_ist_date() - timedelta(days=i)
         day_entries = [e for e in entries if e.entry_time.date() == date_obj and e.paid]
         daily_revenue = sum([e.amount or 0 for e in day_entries])
         revenue_data.append({
@@ -320,7 +320,7 @@ def staff_dashboard():
         return redirect(url_for('main.index'))
     
     # Get current time and 24 hours ago
-    now = get_current_device_time()
+    now = get_current_ist()
     twenty_four_hours_ago = now - timedelta(hours=24)
     
     # Get vehicles entered in the past 24 hours
@@ -339,7 +339,7 @@ def staff_dashboard():
     ).count()
     
     # Get exit vehicles (vehicles processed for exit today) - keeping for backward compatibility
-    today = date.today()
+    today = get_current_ist_date()
     exit_vehicles = Entry.query.filter(
         db.func.date(Entry.exit_time) == today
     ).all()
@@ -437,7 +437,7 @@ def vehicle_entry():
             return render_template('vehicle_entry.html', title='Register Vehicle')
         
         # Generate ticket number with ASR prefix (reset daily)
-        today = date.today()
+        today = get_current_ist_date()
         
         # Find the highest ticket number for today
         today_tickets = Entry.query.filter(
@@ -606,7 +606,7 @@ def vehicle_exit():
             else:
                 # Multiple vehicles found, show selection page
                 # Calculate duration for each vehicle
-                current_time = get_current_device_time()
+                current_time = get_current_ist()
                 vehicles_with_duration = []
                 for vehicle in vehicles_with_phone:
                     entry_time_aware = get_ist_time(vehicle.entry_time)
@@ -969,7 +969,7 @@ def staff_progress():
     staff_members = User.query.filter_by(role='staff').all()
     
     # Get current time and 24 hours ago
-    now = get_current_device_time()
+    now = get_current_ist()
     twenty_four_hours_ago = now - timedelta(hours=24)
     
     # Calculate staff performance
@@ -1026,7 +1026,7 @@ def staff_details(staff_id):
         return redirect(url_for('main.staff_progress'))
     
     # Get current time and 24 hours ago
-    now = get_current_device_time()
+    now = get_current_ist()
     twenty_four_hours_ago = now - timedelta(hours=24)
     
     # Get recent entries by this staff (last 50)

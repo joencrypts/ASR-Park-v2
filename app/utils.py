@@ -14,6 +14,12 @@ def get_current_ist():
     ist_tz = get_ist_timezone()
     return datetime.now(ist_tz)
 
+def get_current_ist_date():
+    """
+    Get current IST date
+    """
+    return get_current_ist().date()
+
 def get_ist_time(dt=None):
     """
     Convert datetime to IST (Indian Standard Time) +05:30
