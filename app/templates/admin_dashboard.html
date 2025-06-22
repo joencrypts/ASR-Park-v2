@@ -585,7 +585,7 @@
                             <td>{{ entry.vehicle_number }}</td>
                             <td>{{ entry.vehicle_type }}</td>
                             <td>{{ entry.entry_time | ist_medium }}</td>
-                            <td>{{ entry.exit_time | ist_medium if entry.exit_time else '-' }}</td>
+                            <td>{{ entry.exit_time | ist_receipt }}</td>
                             <td>₹{{ "%.0f"|format(entry.amount or 0) }}</td>
                             <td>
                                 {% if entry.paid %}
